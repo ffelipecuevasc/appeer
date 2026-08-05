@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Clases · AppEER{% endblock %}
+{% block content %}
+    <header class="mb-6 flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-medium text-brand-dark">Clases</h1>
+            <p class="text-sm text-brand-muted">Grupos/turmas de la escuela de capacitación.</p>
+        </div>
+        <a href="{% url 'academico:clases_crear' %}"
+           class="px-5 py-2.5 rounded-full bg-brand-accent text-white text-sm font-medium hover:opacity-90 transition-opacity">
+            + Nueva clase
+        </a>
+    </header>
+    <section class="bg-brand-card rounded-3xl shadow-card overflow-hidden">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-brand-bg/60 text-brand-dark uppercase text-xs tracking-wide">
+            <tr>
+                <th class="px-6 py-4">Nombre</th>
+                <th class="px-6 py-4">Año</th>
+                <th class="px-6 py-4"></th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-brand-border">
+            {% for clase in clases %}
+                <tr class="hover:bg-brand-bg/40 transition-colors">
+                    <td class="px-6 py-4 font-medium text-brand-dark">{{ clase.nombre }}</td>
+                    <td class="px-6 py-4 text-brand-muted">{{ clase.anio }}</td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="inline-flex items-center gap-4">
+                            <a href="{% url 'academico:clases_detalle' id_clase=clase.id_clase %}"
+                               class="text-brand-accent text-sm font-medium hover:underline">Ver</a>
+                            <a href="{% url 'academico:clases_editar' id_clase=clase.id_clase %}"
+                               class="text-brand-dark text-sm font-medium hover:underline">Editar</a>
+                            <a href="{% url 'academico:clases_eliminar' id_clase=clase.id_clase %}"
+                               class="text-red-600 text-sm font-medium hover:underline">Eliminar</a>
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="3" class="px-6 py-10 text-center text-brand-muted">No hay clases registradas todavía.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% if is_paginated %}
+        <nav class="flex justify-center gap-2 mt-6">
+            {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}"
+                                             class="px-4 py-2 rounded-full bg-brand-card shadow-card text-sm text-brand-dark">Anterior</a>{% endif %}
+            <span class="px-4 py-2 text-sm text-brand-muted">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}"
+                                         class="px-4 py-2 rounded-full bg-brand-card shadow-card text-sm text-brand-dark">Siguiente</a>{% endif %}
+        </nav>
+    {% endif %}
+{% endblock %}
