@@ -3,9 +3,21 @@
 {% block title %}{{ estudiante.nombre_completo }} · AppEER{% endblock %}
 
 {% block content %}
-<a href="{% url 'estudiantes:listado' %}" class="inline-flex items-center text-sm text-brand-accent hover:underline mb-6">
-  &larr; Volver al listado
-</a>
+<div class="flex items-center justify-between mb-6">
+  <a href="{% url 'estudiantes:listado' %}" class="inline-flex items-center text-sm text-brand-accent hover:underline">
+    &larr; Volver al listado
+  </a>
+  <div class="flex gap-3">
+    <a href="{% url 'estudiantes:editar' id_estudiante=estudiante.id_estudiante %}"
+       class="px-4 py-2 rounded-full border border-brand-border text-sm font-medium text-brand-dark hover:bg-brand-bg/60 transition-colors">
+      Editar
+    </a>
+    <a href="{% url 'estudiantes:eliminar' id_estudiante=estudiante.id_estudiante %}"
+       class="px-4 py-2 rounded-full border border-red-200 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+      Eliminar
+    </a>
+  </div>
+</div>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
   <section class="md:col-span-1 bg-brand-dark rounded-[32px] p-8 text-white shadow-card flex flex-col items-center text-center">

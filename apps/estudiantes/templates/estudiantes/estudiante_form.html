@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Editar{% else %}Nuevo{% endif %} estudiante · AppEER{% endblock %}
+
+{% block content %}
+<a href="{% url 'estudiantes:listado' %}" class="inline-flex items-center text-sm text-brand-accent hover:underline mb-6">
+  &larr; Volver al listado
+</a>
+
+<div class="max-w-lg bg-brand-card rounded-3xl shadow-card p-8">
+  <h1 class="text-xl font-medium text-brand-dark mb-6">
+    {% if object %}Editar estudiante{% else %}Nuevo estudiante{% endif %}
+  </h1>
+
+  {% if form.non_field_errors %}
+  <div class="mb-4 px-4 py-3 rounded-xl bg-red-50 text-red-700 text-sm">
+    {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+  </div>
+  {% endif %}
+
+  <form method="post" class="space-y-5">
+    {% csrf_token %}
+
+    <div>
+      <label for="{{ form.nombre.id_for_label }}" class="block text-xs font-medium text-brand-dark mb-1.5">Nombre</label>
+      {{ form.nombre }}
+      {% for error in form.nombre.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+    </div>
+
+    <div>
+      <label for="{{ form.apellido.id_for_label }}" class="block text-xs font-medium text-brand-dark mb-1.5">Apellido</label>
+      {{ form.apellido }}
+      {% for error in form.apellido.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+    </div>
+
+    <div>
+      <label for="{{ form.genero.id_for_label }}" class="block text-xs font-medium text-brand-dark mb-1.5">Género</label>
+      {{ form.genero }}
+      {% for error in form.genero.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+    </div>
+
+    <div>
+      <label for="{{ form.fecha_nacimiento.id_for_label }}" class="block text-xs font-medium text-brand-dark mb-1.5">Fecha de nacimiento</label>
+      {{ form.fecha_nacimiento }}
+      {% for error in form.fecha_nacimiento.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+    </div>
+
+    <div>
+      <label for="{{ form.fecha_bautismo.id_for_label }}" class="block text-xs font-medium text-brand-dark mb-1.5">Fecha de bautismo</label>
+      {{ form.fecha_bautismo }}
+      {% for error in form.fecha_bautismo.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+    </div>
+
+    <div>
+      <label for="{{ form.fecha_inicio_servicio_tiempo_completo.id_for_label }}" class="block text-xs font-medium text-brand-dark mb-1.5">
+        Inicio de servicio a tiempo completo
+      </label>
+      {{ form.fecha_inicio_servicio_tiempo_completo }}
+      {% for error in form.fecha_inicio_servicio_tiempo_completo.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+    </div>
+
+    <div class="pt-2 border-t border-brand-border">
+      <p class="text-xs font-medium text-brand-dark mb-3">Matrimonio (opcional)</p>
+
+      <div>
+        <label for="{{ form.matrimonio.id_for_label }}" class="block text-xs text-brand-muted mb-1.5">{{ form.matrimonio.label }}</label>
+        {{ form.matrimonio }}
+        {% for error in form.matrimonio.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+      </div>
+
+      <div class="flex items-center gap-3 my-3">
+        <span class="h-px flex-1 bg-brand-border"></span>
+        <span class="text-xs text-brand-muted">o</span>
+        <span class="h-px flex-1 bg-brand-border"></span>
+      </div>
+
+      <div>
+        <label for="{{ form.nueva_fecha_matrimonio.id_for_label }}" class="block text-xs text-brand-muted mb-1.5">{{ form.nueva_fecha_matrimonio.label }}</label>
+        {{ form.nueva_fecha_matrimonio }}
+        <p class="mt-1 text-xs text-brand-muted">{{ form.nueva_fecha_matrimonio.help_text }}</p>
+        {% for error in form.nueva_fecha_matrimonio.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3 pt-2">
+      <a href="{% url 'estudiantes:listado' %}" class="px-5 py-2.5 rounded-full border border-brand-border text-sm font-medium text-brand-dark hover:bg-brand-bg/60 transition-colors">
+        Cancelar
+      </a>
+      <button type="submit" class="px-5 py-2.5 rounded-full bg-brand-accent text-white text-sm font-medium hover:opacity-90 transition-opacity">
+        Guardar
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

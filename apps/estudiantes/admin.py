@@ -1,29 +1,24 @@
 from django.contrib import admin
 
-from apps.docencia.forms import TemaForm
-from apps.docencia.models import Instructor, Tema
+from apps.estudiantes.models import Estudiante, Matrimonio
 
 
-@admin.register(Instructor)
-class InstructorAdmin(admin.ModelAdmin):
-    list_display = ("apellido", "nombre", "cargo")
+class EstudianteInline(admin.TabularInline):
+    model = Estudiante
+    extra = 0
+    fields = ("nombre", "apellido", "genero")
+
+
+@admin.register(Matrimonio)
+class MatrimonioAdmin(admin.ModelAdmin):
+    list_display = ("id_matrimonio", "fecha_matrimonio")
+    ordering = ("-fecha_matrimonio",)
+    inlines = [EstudianteInline]
+
+
+@admin.register(Estudiante)
+class EstudianteAdmin(admin.ModelAdmin):
+    list_display = ("apellido", "nombre", "genero", "matrimonio")
+    list_filter = ("genero",)
     search_fields = ("nombre", "apellido")
     ordering = ("apellido", "nombre")
-
-
-@admin.register(Tema)
-class TemaAdmin(admin.ModelAdmin):
-    form = TemaForm
-    list_display = ("titulo_tema", "activo")
-    list_filter = ("activo",)
-    search_fields = ("titulo_tema",)
-    ordering = ("titulo_tema",)
-    actions = ["marcar_como_activo", "marcar_como_inactivo"]
-
-    @admin.action(description="Marcar temas seleccionados como activos")
-    def marcar_como_activo(self, request, queryset):
-        queryset.update(activo=True)
-
-    @admin.action(description="Marcar temas seleccionados como inactivos")
-    def marcar_como_inactivo(self, request, queryset):
-        queryset.update(activo=False)

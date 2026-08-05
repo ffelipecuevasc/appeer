@@ -3,9 +3,15 @@
 {% block title %}Estudiantes · AppEER{% endblock %}
 
 {% block content %}
-<header class="mb-6">
-  <h1 class="text-3xl font-medium text-brand-dark">Estudiantes</h1>
-  <p class="text-sm text-brand-muted">Listado general de estudiantes registrados.</p>
+<header class="mb-6 flex items-center justify-between">
+  <div>
+    <h1 class="text-3xl font-medium text-brand-dark">Estudiantes</h1>
+    <p class="text-sm text-brand-muted">Listado general de estudiantes registrados.</p>
+  </div>
+  <a href="{% url 'estudiantes:crear' %}"
+     class="px-5 py-2.5 rounded-full bg-brand-accent text-white text-sm font-medium hover:opacity-90 transition-opacity">
+    + Nuevo estudiante
+  </a>
 </header>
 
 <section class="bg-brand-card rounded-3xl shadow-card overflow-hidden">
@@ -38,8 +44,11 @@
           {% if estudiante.matrimonio_id %}Matrimonio #{{ estudiante.matrimonio_id }}{% else %}—{% endif %}
         </td>
         <td class="px-6 py-4 text-right">
-          <a href="{% url 'estudiantes:detalle' id_estudiante=estudiante.id_estudiante %}"
-             class="text-brand-accent text-sm font-medium hover:underline">Ver detalle</a>
+          <div class="inline-flex items-center gap-4">
+            <a href="{% url 'estudiantes:detalle' id_estudiante=estudiante.id_estudiante %}" class="text-brand-accent text-sm font-medium hover:underline">Ver</a>
+            <a href="{% url 'estudiantes:editar' id_estudiante=estudiante.id_estudiante %}" class="text-brand-dark text-sm font-medium hover:underline">Editar</a>
+            <a href="{% url 'estudiantes:eliminar' id_estudiante=estudiante.id_estudiante %}" class="text-red-600 text-sm font-medium hover:underline">Eliminar</a>
+          </div>
         </td>
       </tr>
       {% empty %}
