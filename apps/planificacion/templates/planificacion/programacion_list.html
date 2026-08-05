@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Horario de clases · AppEER{% endblock %}
+{% block content %}
+    <header class="mb-6 flex items-center justify-between flex-wrap gap-4">
+        <div>
+            <h1 class="text-3xl font-medium text-brand-dark">Horario de clases</h1>
+            <p class="text-sm text-brand-muted">Programación de clases por edición, semana y día.</p>
+        </div>
+        <a href="{% url 'planificacion:programaciones_crear' %}"
+           class="px-5 py-2.5 rounded-full bg-brand-accent text-white text-sm font-medium hover:opacity-90 transition-opacity">
+            + Nueva programación
+        </a>
+    </header>
+
+    <form method="get" class="mb-6 flex items-end gap-3">
+        <div>
+            <label for="edicion" class="block text-xs font-medium text-brand-dark mb-1.5">Filtrar por edición</label>
+            <select name="edicion" id="edicion"
+                    class="px-4 py-2.5 rounded-xl border border-brand-border bg-white text-sm">
+                <option value="">Todas las ediciones</option>
+                {% for edicion in ediciones %}
+                    <option value="{{ edicion.id_edicion }}"
+                            {% if edicion_seleccionada == edicion.id_edicion|stringformat:"s" %}selected{% endif %}>
+                        {{ edicion.nombre_edicion }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit"
+                class="px-5 py-2.5 rounded-full border border-brand-border text-sm font-medium text-brand-dark hover:bg-brand-bg/60 transition-colors">
+            Filtrar
+        </button>
+    </form>
+
+    <section class="bg-brand-card rounded-3xl shadow-card overflow-hidden">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-brand-bg/60 text-brand-dark uppercase text-xs tracking-wide">
+            <tr>
+                <th class="px-6 py-4">Código</th>
+                <th class="px-6 py-4">Edición</th>
+                <th class="px-6 py-4">Semana</th>
+                <th class="px-6 py-4">Día</th>
+                <th class="px-6 py-4">Aula</th>
+                <th class="px-6 py-4">Instructor</th>
+                <th class="px-6 py-4">Tema</th>
+                <th class="px-6 py-4"></th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-brand-border">
+            {% for programacion in programaciones %}
+                <tr class="hover:bg-brand-bg/40 transition-colors">
+                    <td class="px-6 py-4 font-medium text-brand-dark">{{ programacion.codigo_clase }}</td>
+                    <td class="px-6 py-4 text-brand-muted">{{ programacion.edicion_nombre }}</td>
+                    <td class="px-6 py-4 text-brand-muted">{{ programacion.numero_semana }}</td>
+                    <td class="px-6 py-4 text-brand-muted">{{ programacion.dia_semana }}</td>
+                    <td class="px-6 py-4 text-brand-muted">{{ programacion.numero_aula }}</td>
+                    <td class="px-6 py-4 text-brand-muted">{{ programacion.instructor_nombre_completo }}</td>
+                    <td class="px-6 py-4 text-brand-muted">{{ programacion.tema_titulo }}</td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="inline-flex items-center gap-4">
+                            <a href="{% url 'planificacion:programaciones_detalle' id_programacion=programacion.id_programacion %}"
+                               class="text-brand-accent text-sm font-medium hover:underline">Ver</a>
+                            <a href="{% url 'planificacion:programaciones_editar' id_programacion=programacion.id_programacion %}"
+                               class="text-brand-dark text-sm font-medium hover:underline">Editar</a>
+                            <a href="{% url 'planificacion:programaciones_eliminar' id_programacion=programacion.id_programacion %}"
+                               class="text-red-600 text-sm font-medium hover:underline">Eliminar</a>
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="8" class="px-6 py-10 text-center text-brand-muted">No hay programaciones registradas
+                        todavía.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    {% if is_paginated %}
+        <nav class="flex justify-center gap-2 mt-6">
+            {% if page_obj.has_previous %}<a href="?page=
+                    {{ page_obj.previous_page_number }}{% if edicion_seleccionada %}&edicion={{ edicion_seleccionada }}{% endif %}"
+                                             class="px-4 py-2 rounded-full bg-brand-card shadow-card text-sm text-brand-dark">Anterior</a>{% endif %}
+            <span class="px-4 py-2 text-sm text-brand-muted">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}<a href="?page=
+                    {{ page_obj.next_page_number }}{% if edicion_seleccionada %}&edicion={{ edicion_seleccionada }}{% endif %}"
+                                         class="px-4 py-2 rounded-full bg-brand-card shadow-card text-sm text-brand-dark">Siguiente</a>{% endif %}
+        </nav>
+    {% endif %}
+{% endblock %}

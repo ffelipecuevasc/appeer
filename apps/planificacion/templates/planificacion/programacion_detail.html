@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}{{ programacion.codigo_clase }} · AppEER{% endblock %}
+{% block content %}
+    <div class="flex items-center justify-between mb-6">
+        <a href="{% url 'planificacion:programaciones_listado' %}"
+           class="inline-flex items-center text-sm text-brand-accent hover:underline">&larr; Volver al horario</a>
+        <div class="flex gap-3">
+            <a href="{% url 'planificacion:programaciones_editar' id_programacion=programacion.id_programacion %}"
+               class="px-4 py-2 rounded-full border border-brand-border text-sm font-medium text-brand-dark hover:bg-brand-bg/60 transition-colors">Editar</a>
+            <a href="{% url 'planificacion:programaciones_eliminar' id_programacion=programacion.id_programacion %}"
+               class="px-4 py-2 rounded-full border border-red-200 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">Eliminar</a>
+        </div>
+    </div>
+    <section class="bg-brand-card rounded-[32px] p-8 shadow-card">
+        <h1 class="text-2xl font-medium text-brand-dark mb-6">{{ programacion.codigo_clase }}</h1>
+        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+                <dt class="text-xs uppercase text-brand-muted mb-1">Edición</dt>
+                <dd class="text-brand-dark">{{ programacion.edicion_nombre }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs uppercase text-brand-muted mb-1">Semana</dt>
+                <dd class="text-brand-dark">{{ programacion.numero_semana }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs uppercase text-brand-muted mb-1">Día</dt>
+                <dd class="text-brand-dark">{{ programacion.dia_semana }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs uppercase text-brand-muted mb-1">Aula/bloque</dt>
+                <dd class="text-brand-dark">{{ programacion.numero_aula }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs uppercase text-brand-muted mb-1">Instructor</dt>
+                <dd class="text-brand-dark">{{ programacion.instructor_nombre_completo }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs uppercase text-brand-muted mb-1">Tema</dt>
+                <dd class="text-brand-dark">{{ programacion.tema_titulo }}</dd>
+            </div>
+        </dl>
+    </section>
+{% endblock %}

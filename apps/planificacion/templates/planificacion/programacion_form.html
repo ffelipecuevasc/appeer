@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Editar{% else %}Nueva{% endif %} programación · AppEER{% endblock %}
+{% block content %}
+    <a href="{% url 'planificacion:programaciones_listado' %}"
+       class="inline-flex items-center text-sm text-brand-accent hover:underline mb-6">&larr; Volver al horario</a>
+    <div class="max-w-lg bg-brand-card rounded-3xl shadow-card p-8">
+        <h1 class="text-xl font-medium text-brand-dark mb-6">{% if object %}Editar programación{% else %}Nueva
+            programación{% endif %}</h1>
+        {% if form.non_field_errors %}
+            <div class="mb-4 px-4 py-3 rounded-xl bg-red-50 text-red-700 text-sm">
+                {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>
+        {% endif %}
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+            <div>
+                <label for="{{ form.edicion.id_for_label }}" class="block text-xs font-medium text-brand-dark mb-1.5">Edición</label>
+                {{ form.edicion }}
+                {% for error in form.edicion.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+                <label for="{{ form.codigo_clase.id_for_label }}"
+                       class="block text-xs font-medium text-brand-dark mb-1.5">Código de clase</label>
+                {{ form.codigo_clase }}
+                {% for error in form.codigo_clase.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="{{ form.numero_semana.id_for_label }}"
+                           class="block text-xs font-medium text-brand-dark mb-1.5">Semana</label>
+                    {{ form.numero_semana }}
+                    {% for error in form.numero_semana.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                </div>
+                <div>
+                    <label for="{{ form.numero_aula.id_for_label }}"
+                           class="block text-xs font-medium text-brand-dark mb-1.5">Aula/bloque</label>
+                    {{ form.numero_aula }}
+                    {% for error in form.numero_aula.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                </div>
+            </div>
+            <div>
+                <label for="{{ form.dia_semana.id_for_label }}"
+                       class="block text-xs font-medium text-brand-dark mb-1.5">Día de la semana</label>
+                {{ form.dia_semana }}
+                {% for error in form.dia_semana.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+                <label for="{{ form.instructor.id_for_label }}"
+                       class="block text-xs font-medium text-brand-dark mb-1.5">Instructor</label>
+                {{ form.instructor }}
+                {% for error in form.instructor.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+                <label for="{{ form.tema.id_for_label }}"
+                       class="block text-xs font-medium text-brand-dark mb-1.5">Tema</label>
+                {{ form.tema }}
+                <p class="mt-1 text-xs text-brand-muted">Solo se muestran temas activos.</p>
+                {% for error in form.tema.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <a href="{% url 'planificacion:programaciones_listado' %}"
+                   class="px-5 py-2.5 rounded-full border border-brand-border text-sm font-medium text-brand-dark hover:bg-brand-bg/60 transition-colors">Cancelar</a>
+                <button type="submit"
+                        class="px-5 py-2.5 rounded-full bg-brand-accent text-white text-sm font-medium hover:opacity-90 transition-opacity">
+                    Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
