@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}AppEER{% endblock %}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: { sans: ['Inter', 'sans-serif'] },
+        colors: {
+          brand: {
+            bg: '#E2F0FD',
+            card: '#FFFFFF',
+            dark: '#1C3861',
+            accent: '#267AE9',
+            text: '#2D3748',
+            muted: '#A0AEC0',
+            border: '#E2E8F0',
+          }
+        },
+        boxShadow: {
+          card: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+        }
+      }
+    }
+  }
+</script>
+{% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen bg-brand-bg font-sans text-brand-text antialiased">
+<div class="max-w-[1400px] mx-auto p-6">
+  {% block content %}{% endblock %}
+</div>
+</body>
+</html>

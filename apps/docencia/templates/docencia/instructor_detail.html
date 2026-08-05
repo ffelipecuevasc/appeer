@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}{{ instructor.nombre_completo }} · AppEER{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <a href="{% url 'docencia:listado' %}" class="inline-flex items-center text-sm text-brand-accent hover:underline">
+    &larr; Volver al listado
+  </a>
+  <div class="flex gap-3">
+    <a href="{% url 'docencia:editar' id_instructor=instructor.id_instructor %}"
+       class="px-4 py-2 rounded-full border border-brand-border text-sm font-medium text-brand-dark hover:bg-brand-bg/60 transition-colors">
+      Editar
+    </a>
+    <a href="{% url 'docencia:eliminar' id_instructor=instructor.id_instructor %}"
+       class="px-4 py-2 rounded-full border border-red-200 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+      Eliminar
+    </a>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <section class="md:col-span-1 bg-brand-dark rounded-[32px] p-8 text-white shadow-card flex flex-col items-center text-center">
+    <div class="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center text-2xl font-semibold mb-4">
+      {{ instructor.nombre|first }}{{ instructor.apellido|first }}
+    </div>
+    <h2 class="text-xl font-medium">{{ instructor.nombre_completo }}</h2>
+    <span class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/10">
+      {{ instructor.cargo }}
+    </span>
+  </section>
+
+  <section class="md:col-span-2 bg-brand-card rounded-[32px] p-8 shadow-card">
+    <h3 class="text-lg font-medium text-brand-dark mb-6">Información del instructor</h3>
+    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div>
+        <dt class="text-xs uppercase text-brand-muted mb-1">Nombre</dt>
+        <dd class="text-brand-dark">{{ instructor.nombre }}</dd>
+      </div>
+      <div>
+        <dt class="text-xs uppercase text-brand-muted mb-1">Apellido</dt>
+        <dd class="text-brand-dark">{{ instructor.apellido }}</dd>
+      </div>
+      <div>
+        <dt class="text-xs uppercase text-brand-muted mb-1">Cargo</dt>
+        <dd class="text-brand-dark">{{ instructor.cargo }}</dd>
+      </div>
+    </dl>
+  </section>
+</div>
+{% endblock %}

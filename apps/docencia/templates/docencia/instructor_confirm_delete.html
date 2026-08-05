@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Eliminar instructor · AppEER{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto bg-brand-card rounded-3xl shadow-card p-8">
+  <h1 class="text-xl font-medium text-brand-dark mb-2">¿Eliminar este instructor?</h1>
+  <p class="text-sm text-brand-muted mb-6">
+    Vas a eliminar de forma permanente a <strong>{{ object.nombre }} {{ object.apellido }}</strong>.
+    Esta acción no se puede deshacer.
+  </p>
+  <form method="post">
+    {% csrf_token %}
+    <div class="flex justify-end gap-3">
+      <a href="{% url 'docencia:detalle' id_instructor=object.pk %}"
+         class="px-5 py-2.5 rounded-full border border-brand-border text-sm font-medium text-brand-dark hover:bg-brand-bg/60 transition-colors">
+        Cancelar
+      </a>
+      <button type="submit"
+              class="px-5 py-2.5 rounded-full bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors">
+        Eliminar definitivamente
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

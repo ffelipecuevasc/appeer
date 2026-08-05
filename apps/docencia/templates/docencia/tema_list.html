@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Temas · AppEER{% endblock %}
+
+{% block content %}
+<header class="mb-6 flex items-center justify-between">
+  <div>
+    <h1 class="text-3xl font-medium text-brand-dark">Temas</h1>
+    <p class="text-sm text-brand-muted">Catálogo de temas disponibles para programación.</p>
+  </div>
+  <a href="{% url 'docencia:temas_crear' %}"
+     class="px-5 py-2.5 rounded-full bg-brand-accent text-white text-sm font-medium hover:opacity-90 transition-opacity">
+    + Nuevo tema
+  </a>
+</header>
+
+<section class="bg-brand-card rounded-3xl shadow-card overflow-hidden">
+  <table class="w-full text-left text-sm">
+    <thead class="bg-brand-bg/60 text-brand-dark uppercase text-xs tracking-wide">
+      <tr>
+        <th class="px-6 py-4">Título</th>
+        <th class="px-6 py-4">Estado</th>
+        <th class="px-6 py-4"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-brand-border">
+      {% for tema in temas %}
+      <tr class="hover:bg-brand-bg/40 transition-colors">
+        <td class="px-6 py-4 font-medium text-brand-dark">{{ tema.titulo_tema }}</td>
+        <td class="px-6 py-4">
+          {% if tema.activo %}
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">Activo</span>
+          {% else %}
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Inactivo</span>
+          {% endif %}
+        </td>
+        <td class="px-6 py-4 text-right">
+          <div class="inline-flex items-center gap-4">
+            <a href="{% url 'docencia:temas_editar' id_tema=tema.id_tema %}" class="text-brand-accent text-sm font-medium hover:underline">Editar</a>
+            <form method="post" action="{% url 'docencia:temas_alternar_estado' id_tema=tema.id_tema %}" class="inline">
+              {% csrf_token %}
+              <button type="submit" class="text-brand-muted text-sm font-medium hover:text-brand-dark hover:underline">
+                {% if tema.activo %}Desactivar{% else %}Activar{% endif %}
+              </button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="3" class="px-6 py-10 text-center text-brand-muted">No hay temas registrados todavía.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% if is_paginated %}
+<nav class="flex justify-center gap-2 mt-6">
+  {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 rounded-full bg-brand-card shadow-card text-sm text-brand-dark">Anterior</a>
+  {% endif %}
+  <span class="px-4 py-2 text-sm text-brand-muted">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 rounded-full bg-brand-card shadow-card text-sm text-brand-dark">Siguiente</a>
+  {% endif %}
+</nav>
+{% endif %}
+{% endblock %}

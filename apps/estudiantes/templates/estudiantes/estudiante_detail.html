@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}{{ estudiante.nombre_completo }} · AppEER{% endblock %}
+
+{% block content %}
+<a href="{% url 'estudiantes:listado' %}" class="inline-flex items-center text-sm text-brand-accent hover:underline mb-6">
+  &larr; Volver al listado
+</a>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <section class="md:col-span-1 bg-brand-dark rounded-[32px] p-8 text-white shadow-card flex flex-col items-center text-center">
+    <div class="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center text-2xl font-semibold mb-4">
+      {{ estudiante.nombre|first }}{{ estudiante.apellido|first }}
+    </div>
+    <h2 class="text-xl font-medium">{{ estudiante.nombre_completo }}</h2>
+    <span class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/10">
+      {{ estudiante.genero|title }}
+    </span>
+  </section>
+
+  <section class="md:col-span-2 bg-brand-card rounded-[32px] p-8 shadow-card">
+    <h3 class="text-lg font-medium text-brand-dark mb-6">Información del estudiante</h3>
+    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div>
+        <dt class="text-xs uppercase text-brand-muted mb-1">Fecha de nacimiento</dt>
+        <dd class="text-brand-dark">
+          {% if estudiante.fecha_nacimiento %}{{ estudiante.fecha_nacimiento|date:"d/m/Y" }}{% else %}No registrada{% endif %}
+        </dd>
+      </div>
+      <div>
+        <dt class="text-xs uppercase text-brand-muted mb-1">Fecha de bautismo</dt>
+        <dd class="text-brand-dark">
+          {% if estudiante.fecha_bautismo %}{{ estudiante.fecha_bautismo|date:"d/m/Y" }}{% else %}No registrada{% endif %}
+        </dd>
+      </div>
+      <div>
+        <dt class="text-xs uppercase text-brand-muted mb-1">Inicio servicio tiempo completo</dt>
+        <dd class="text-brand-dark">
+          {% if estudiante.fecha_inicio_servicio_tiempo_completo %}{{ estudiante.fecha_inicio_servicio_tiempo_completo|date:"d/m/Y" }}{% else %}No registrada{% endif %}
+        </dd>
+      </div>
+      <div>
+        <dt class="text-xs uppercase text-brand-muted mb-1">Matrimonio</dt>
+        <dd class="text-brand-dark">
+          {% if estudiante.matrimonio_id %}Matrimonio #{{ estudiante.matrimonio_id }}{% else %}No registrado{% endif %}
+        </dd>
+      </div>
+    </dl>
+  </section>
+</div>
+{% endblock %}
