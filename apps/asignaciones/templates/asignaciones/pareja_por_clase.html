@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Parejas — {{ clase.nombre }} · AppEER{% endblock %}
+{% block content %}
+    <header class="mb-6 flex items-center justify-between flex-wrap gap-4">
+        <div>
+            <h1 class="text-3xl font-medium text-brand-dark">Parejas — {{ clase.nombre }}</h1>
+            <p class="text-sm text-brand-muted">Año {{ clase.anio }}</p>
+        </div>
+        <a href="{% url 'asignaciones:parejas_crear' id_clase=clase.id_clase %}"
+           class="px-5 py-2.5 rounded-full bg-brand-accent text-white text-sm font-medium hover:opacity-90 transition-opacity">
+            + Nueva pareja
+        </a>
+    </header>
+    <section class="bg-brand-card rounded-3xl shadow-card overflow-hidden">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-brand-bg/60 text-brand-dark uppercase text-xs tracking-wide">
+            <tr>
+                <th class="px-6 py-4">Estudiante 1</th>
+                <th class="px-6 py-4">Estudiante 2</th>
+                <th class="px-6 py-4">Programación</th>
+                <th class="px-6 py-4"></th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-brand-border">
+            {% for pareja in parejas %}
+                <tr class="hover:bg-brand-bg/40 transition-colors">
+                    <td class="px-6 py-4 font-medium text-brand-dark">{{ pareja.estudiante_1_nombre_completo }}</td>
+                    <td class="px-6 py-4 font-medium text-brand-dark">{{ pareja.estudiante_2_nombre_completo }}</td>
+                    <td class="px-6 py-4 text-brand-muted">
+                        {% if pareja.programacion_codigo %}{{ pareja.programacion_codigo }}{% else %}Sin
+                            asignar{% endif %}</td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="inline-flex items-center gap-4">
+                            <a href="{% url 'asignaciones:parejas_detalle' id_pareja=pareja.id_pareja %}"
+                               class="text-brand-accent text-sm font-medium hover:underline">Ver</a>
+                            <a href="{% url 'asignaciones:parejas_editar' id_pareja=pareja.id_pareja %}"
+                               class="text-brand-dark text-sm font-medium hover:underline">Editar</a>
+                            <a href="{% url 'asignaciones:parejas_eliminar' id_pareja=pareja.id_pareja %}"
+                               class="text-red-600 text-sm font-medium hover:underline">Eliminar</a>
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4" class="px-6 py-10 text-center text-brand-muted">Todavía no hay parejas asignadas en
+                        esta clase.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+{% endblock %}

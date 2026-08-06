@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Editar{% else %}Nueva{% endif %} pareja · AppEER{% endblock %}
+{% block content %}
+    <a href="{% url 'asignaciones:parejas_por_clase' id_clase=clase.id_clase %}"
+       class="inline-flex items-center text-sm text-brand-accent hover:underline mb-6">&larr; Volver a la clase</a>
+    <div class="max-w-lg bg-brand-card rounded-3xl shadow-card p-8">
+        <h1 class="text-xl font-medium text-brand-dark mb-1">{% if object %}Editar pareja{% else %}Nueva
+            pareja{% endif %}</h1>
+        <p class="text-sm text-brand-muted mb-6">Clase: <strong>{{ clase.nombre }}</strong></p>
+        {% if form.non_field_errors %}
+            <div class="mb-4 px-4 py-3 rounded-xl bg-red-50 text-red-700 text-sm">
+                {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>
+        {% endif %}
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+            <div>
+                <label for="{{ form.estudiante_1.id_for_label }}"
+                       class="block text-xs font-medium text-brand-dark mb-1.5">Estudiante 1</label>
+                {{ form.estudiante_1 }}
+                {% for error in form.estudiante_1.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+                <label for="{{ form.estudiante_2.id_for_label }}"
+                       class="block text-xs font-medium text-brand-dark mb-1.5">Estudiante 2</label>
+                {{ form.estudiante_2 }}
+                <p class="mt-1 text-xs text-brand-muted">Solo se muestran estudiantes inscritos en esta clase.</p>
+                {% for error in form.estudiante_2.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+                <label for="{{ form.programacion.id_for_label }}"
+                       class="block text-xs font-medium text-brand-dark mb-1.5">Programación (opcional)</label>
+                {{ form.programacion }}
+                <p class="mt-1 text-xs text-brand-muted">Permite rotar la pareja según tema/semana. Dejar en blanco si
+                    no aplica todavía.</p>
+                {% for error in form.programacion.errors %}
+                    <p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <a href="{% url 'asignaciones:parejas_por_clase' id_clase=clase.id_clase %}"
+                   class="px-5 py-2.5 rounded-full border border-brand-border text-sm font-medium text-brand-dark hover:bg-brand-bg/60 transition-colors">Cancelar</a>
+                <button type="submit"
+                        class="px-5 py-2.5 rounded-full bg-brand-accent text-white text-sm font-medium hover:opacity-90 transition-opacity">
+                    Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
