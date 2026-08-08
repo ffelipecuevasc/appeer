@@ -1,39 +1,78 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{% block title %}AppEER{% endblock %}</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        fontFamily: { sans: ['Inter', 'sans-serif'] },
-        colors: {
-          brand: {
-            bg: '#E2F0FD',
-            card: '#FFFFFF',
-            dark: '#1C3861',
-            accent: '#267AE9',
-            text: '#2D3748',
-            muted: '#A0AEC0',
-            border: '#E2E8F0',
-          }
-        },
-        boxShadow: {
-          card: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
-        }
-      }
-    }
-  }
-</script>
-{% block extra_head %}{% endblock %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AppEER · Escuela de Capacitación{% endblock %}</title>
+
+    <!-- Tailwind CSS vía CDN, sin paso de compilación (Plan Maestro, sección 12.2) -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        // Sistema de diseño unificado del proyecto (Adenda 7): paleta brand.*
+        // rescatada de index_PROTOTIPO.html, adoptada como única fuente de
+        // verdad visual. login_PROTOTIPO.html fue adaptado a este mismo token
+        // set en lugar de mantener su propio sistema Material-style.
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            bg: '#E2F0FD',
+                            card: '#FFFFFF',
+                            dark: '#1C3861',
+                            accent: '#267AE9',
+                            text: '#2D3748',
+                            muted: '#A0AEC0',
+                            border: '#E2E8F0',
+                        },
+                    },
+                    boxShadow: {
+                        card: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+                        'inner-light': 'inset 0 2px 4px 0 rgba(255, 255, 255, 0.3)',
+                    },
+                },
+            },
+        };
+    </script>
+
+    <!-- Ajustes puntuales no resolubles con utilidades de Tailwind (Subfase 5.5) -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
+    {% block extra_head %}{% endblock %}
 </head>
-<body class="min-h-screen bg-brand-bg font-sans text-brand-text antialiased">
-<div class="max-w-[1400px] mx-auto p-6">
-  {% block content %}{% endblock %}
+<body class="min-h-screen flex flex-col bg-brand-bg font-sans text-brand-text antialiased">
+
+<!-- Garantiza la cookie CSRF en toda página, no solo en las que ya
+     traían un <form>. Necesario para que AppEER.http (Fase 6,
+     Subfase 6.1) pueda hacer peticiones de escritura vía fetch desde
+     cualquier vista, incluidas las de solo lectura. -->
+{% csrf_token %}
+
+<div class="w-full max-w-[1400px] mx-auto p-6 flex-1 flex flex-col">
+    {% include "partials/header.html" %}
+
+    <main class="flex-1 w-full">
+        {% include "partials/alerts.html" %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    {% include "partials/footer.html" %}
 </div>
+
+<!-- Núcleo JS transversal (Fase 6, Subfase 6.1): sin paso de build,
+     Vanilla ES6+. Deben cargar ANTES de cualquier módulo de página
+     (block extra_js) porque exponen window.AppEER.http y
+     window.AppEER.notify, que esos módulos consumen. -->
+<script src="{% static 'js/core/http.js' %}" defer></script>
+<script src="{% static 'js/core/notifications.js' %}" defer></script>
+{% block extra_js %}{% endblock %}
+
 </body>
 </html>

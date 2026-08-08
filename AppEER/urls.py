@@ -17,8 +17,17 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
+from django.views.generic import TemplateView
+
+from AppEER import views
 
 urlpatterns = [
+    path("", views.inicio, name="inicio"),
+    # TemplateView temporal (Adenda 7): sin lógica de autenticación
+    # todavía. En la Fase 8 se reemplaza este TemplateView por la
+    # vista real de login, en la MISMA ruta y el MISMO name="login" —
+    # nada que dependa de esta URL necesita cambiar después.
+    path("login/", TemplateView.as_view(template_name="login.html"), name="login"),
     path("admin/", admin.site.urls),
     path("estudiantes/", include("apps.estudiantes.urls")),
     path("docencia/", include("apps.docencia.urls")),
@@ -26,3 +35,7 @@ urlpatterns = [
     path("planificacion/", include("apps.planificacion.urls")),
     path("asignaciones/", include("apps.asignaciones.urls")),
 ]
+
+handler403 = "core.views.error_403"
+handler404 = "core.views.error_404"
+handler500 = "core.views.error_500"

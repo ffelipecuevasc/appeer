@@ -1,0 +1,73 @@
+/*
+ * AppEER · static/css/styles.css
+ * ═══════════════════════════════════════════════════════════════
+ * CRITERIO DE USO (Subfase 5.5 — Plan Maestro, sección 12.2)
+ * ═══════════════════════════════════════════════════════════════
+ *
+ * Esta hoja NO es una hoja de estilos paralela a Tailwind. Antes de
+ * agregar una regla acá, la pregunta obligatoria es:
+ *
+ *   ¿Existe una utilidad nativa de Tailwind (CDN, sin build) que
+ *   resuelva esto?
+ *     → SÍ: se usa la utilidad directa en el HTML. No se agrega
+ *       nada acá, aunque la combinación de clases se repita entre
+ *       varios templates.
+ *     → NO, y es un caso reutilizable (no un ajuste de una sola
+ *       vista puntual): se documenta acá, con un comentario que
+ *       explique por qué Tailwind no lo cubre.
+ *
+ * Los 3 casos que existen hoy en este archivo son el catálogo de
+ * ejemplo de qué SÍ califica:
+ *   - Combinaciones de propiedades que Tailwind no expone como
+ *     utilidad (.glass-pill: backdrop-filter + doble capa de
+ *     transparencia).
+ *   - Propiedades SVG sin utilidad Tailwind equivalente (.dash-line:
+ *     stroke-dasharray).
+ *   - Selectores de pseudo-elementos / estados nativos del
+ *     navegador que una clase de utilidad no puede targetear
+ *     (.nav-dropdown: ::-webkit-details-marker, [open]).
+ *
+ * Lo que NO va acá: nada expresable con clases de utilidad (color,
+ * espaciado, tipografía, sombra, borde, radio). Repetir esas clases
+ * entre templates no es deuda técnica en este proyecto — es el
+ * costo aceptado de no compilar Tailwind. Crear una clase custom
+ * acá para "no repetir" esas clases SÍ es deuda técnica: reintroduce
+ * exactamente la hoja de estilos paralela que esta subfase existe
+ * para evitar.
+ * ═══════════════════════════════════════════════════════════════
+ */
+
+/* Efecto "glass" de la barra de navegación superior tipo pill,
+   rescatado de index_PROTOTIPO.html. Sin equivalente directo como
+   utilidad de Tailwind por la combinación de backdrop-filter con
+   doble capa de transparencia. Se usa en partials/header.html
+   (Subfase 5.2). */
+.glass-pill {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+/* Patrón de guiones para trazos SVG (ej. anillos/pistas de progreso
+   del dashboard de inicio). stroke-dasharray no es controlable vía
+   clases de Tailwind. */
+.dash-line {
+  stroke-dasharray: 4 4;
+}
+
+/* Dropdowns del header (Subfase 5.2), implementados con <details>/
+   <summary> nativos para no depender de JavaScript. Tailwind no tiene
+   utilidad para el marcador nativo del navegador ni para pseudo-clase
+   [open] de <details>. */
+.nav-dropdown > summary {
+  list-style: none;
+}
+.nav-dropdown > summary::-webkit-details-marker {
+  display: none;
+}
+.nav-dropdown .nav-caret {
+  transition: transform 0.15s ease;
+}
+.nav-dropdown[open] .nav-caret {
+  transform: rotate(180deg);
+}

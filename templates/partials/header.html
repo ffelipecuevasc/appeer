@@ -1,0 +1,236 @@
+<!--
+  Partial: header.html (Subfase 5.2)
+  Encabezado de navegación global. Barra tipo "pill" con efecto glass
+  rescatada de index_PROTOTIPO.html, adaptada al dominio AppEER.
+  Los 5 items de primer nivel usan <details>/<summary> (HTML5 puro,
+  cero JavaScript) para el submenú desplegable. El único JS de esta
+  fase es el imprescindible para abrir/cerrar el menú móvil.
+-->
+<nav aria-label="Navegación principal" class="flex items-center justify-between mb-8">
+    <!-- Logo -->
+    <a href="{% url 'inicio' %}" class="glass-pill px-6 py-2 rounded-full flex items-center justify-center">
+        <span class="text-xl font-semibold text-brand-dark">AppEER</span>
+    </a>
+
+    <!-- Menu principal (escritorio) -->
+    <div class="hidden lg:flex items-center gap-1 bg-white/40 backdrop-blur-sm rounded-full p-1.5 shadow-sm border border-white/60">
+        <a href="{% url 'inicio' %}"
+           class="px-5 py-2 rounded-full text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'inicio' %}bg-brand-dark text-white{% else %}text-brand-dark hover:bg-white/50{% endif %}">
+            Inicio
+        </a>
+        <details name="nav-dropdown" class="nav-dropdown relative">
+            <summary
+                    class="flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-medium cursor-pointer transition-colors {% if request.resolver_match.app_name == 'estudiantes' %}bg-brand-dark text-white{% else %}text-brand-dark hover:bg-white/50{% endif %}">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill="currentColor"
+                          d="M2.596 18.616v-1.647q0-.696.36-1.197q.361-.5.971-.799q1.3-.621 2.583-.99q1.282-.367 3.086-.367t3.087.368t2.583.989q.609.298.97.799q.36.501.36 1.197v1.647zm16 0v-1.693q0-.87-.353-1.641q-.352-.772-.997-1.324q.737.15 1.42.416q.682.267 1.35.599q.65.327 1.019.834t.369 1.116v1.693zM7.473 10.508q-.877-.877-.877-2.123t.877-2.123t2.123-.877t2.123.877t.877 2.123t-.877 2.123t-2.123.877t-2.123-.877m8.516 0q-.877.877-2.123.877q-.064 0-.162-.015t-.162-.031q.502-.628.778-1.381q.276-.754.276-1.573q0-.82-.285-1.564q-.286-.744-.769-1.39q.081-.029.162-.038t.162-.008q1.246 0 2.123.877t.877 2.123t-.877 2.123"/>
+                </svg>
+                <span>Estudiantes</span>
+                <svg class="w-3.5 h-3.5 nav-caret" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill="currentColor" d="M12 14.708L6.692 9.4l.708-.708l4.6 4.6l4.6-4.6l.708.708z"/>
+                </svg>
+            </summary>
+            <div class="absolute left-0 top-full mt-2 w-60 bg-white rounded-2xl shadow-card border border-brand-border p-2 z-30">
+                <a href="{% url 'estudiantes:listado' %}"
+                   class="block px-4 py-2.5 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Listado
+                    de estudiantes</a>
+                <a href="{% url 'estudiantes:crear' %}"
+                   class="block px-4 py-2.5 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">+
+                    Nuevo estudiante</a>
+            </div>
+        </details>
+        <details name="nav-dropdown" class="nav-dropdown relative">
+            <summary
+                    class="flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-medium cursor-pointer transition-colors {% if request.resolver_match.app_name == 'docencia' %}bg-brand-dark text-white{% else %}text-brand-dark hover:bg-white/50{% endif %}">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill="currentColor"
+                          d="M19.923 15.385V9.562L12 13.846L3.077 9L12 4.154L20.923 9v6.385zM12 18.692l-6-3.261v-4.077l6 3.262l6-3.262v4.077z"/>
+                </svg>
+                <span>Docencia</span>
+                <svg class="w-3.5 h-3.5 nav-caret" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill="currentColor" d="M12 14.708L6.692 9.4l.708-.708l4.6 4.6l4.6-4.6l.708.708z"/>
+                </svg>
+            </summary>
+            <div class="absolute left-0 top-full mt-2 w-60 bg-white rounded-2xl shadow-card border border-brand-border p-2 z-30">
+                <a href="{% url 'docencia:listado' %}"
+                   class="block px-4 py-2.5 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Instructores</a>
+                <a href="{% url 'docencia:temas_listado' %}"
+                   class="block px-4 py-2.5 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Temas</a>
+            </div>
+        </details>
+        <details name="nav-dropdown" class="nav-dropdown relative">
+            <summary
+                    class="flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-medium cursor-pointer transition-colors {% if request.resolver_match.app_name == 'academico' %}bg-brand-dark text-white{% else %}text-brand-dark hover:bg-white/50{% endif %}">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill="currentColor"
+                          d="M12 14.154q-.31 0-.54-.23t-.23-.54t.23-.539t.54-.23t.54.23t.23.54t-.23.539t-.54.23m-4.54-.23q-.23-.23-.23-.54q0-.309.23-.539t.54-.23t.54.23t.23.54t-.23.539t-.54.23t-.54-.23m8.54.23q-.31 0-.54-.23t-.23-.54t.23-.539t.54-.23t.54.23t.23.54t-.23.539t-.54.23M12 18q-.31 0-.54-.23t-.23-.54t.23-.539t.54-.23t.54.23t.23.54t-.23.54T12 18m-4.54-.23q-.23-.23-.23-.54q0-.309.23-.539t.54-.23t.54.23t.23.54t-.23.54Q8.31 18 8 18t-.54-.23M16 18q-.31 0-.54-.23t-.23-.54t.23-.539t.54-.23t.54.23t.23.54t-.23.54T16 18M5.616 21q-.691 0-1.153-.462T4 19.385V6.615q0-.69.463-1.152T5.616 5h1.769V2.77h1.077V5h7.154V2.77h1V5h1.769q.69 0 1.153.463T20 6.616v12.769q0 .69-.462 1.153T18.384 21zm0-1h12.769q.23 0 .423-.192t.192-.424v-8.768H5v8.769q0 .23.192.423t.423.192"/>
+                </svg>
+                <span>Académico</span>
+                <svg class="w-3.5 h-3.5 nav-caret" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill="currentColor" d="M12 14.708L6.692 9.4l.708-.708l4.6 4.6l4.6-4.6l.708.708z"/>
+                </svg>
+            </summary>
+            <div class="absolute left-0 top-full mt-2 w-60 bg-white rounded-2xl shadow-card border border-brand-border p-2 z-30">
+                <a href="{% url 'academico:ediciones_listado' %}"
+                   class="block px-4 py-2.5 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Ediciones</a>
+                <a href="{% url 'academico:clases_listado' %}"
+                   class="block px-4 py-2.5 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Clases</a>
+            </div>
+        </details>
+        <details name="nav-dropdown" class="nav-dropdown relative">
+            <summary
+                    class="flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-medium cursor-pointer transition-colors {% if request.resolver_match.app_name == 'planificacion' %}bg-brand-dark text-white{% else %}text-brand-dark hover:bg-white/50{% endif %}">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill="currentColor"
+                          d="M13.389 17.38q-.62-.618-.62-1.495t.62-1.496t1.496-.62q.877 0 1.496.62T17 15.885t-.62 1.496t-1.495.619t-1.496-.62M5.616 21q-.691 0-1.153-.462T4 19.385V6.615q0-.69.463-1.152T5.616 5h1.769V2.77h1.077V5h7.154V2.77h1V5h1.769q.69 0 1.153.463T20 6.616v12.769q0 .69-.462 1.153T18.384 21zm0-1h12.769q.23 0 .423-.192t.192-.424v-8.768H5v8.769q0 .23.192.423t.423.192"/>
+                </svg>
+                <span>Planificación</span>
+                <svg class="w-3.5 h-3.5 nav-caret" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill="currentColor" d="M12 14.708L6.692 9.4l.708-.708l4.6 4.6l4.6-4.6l.708.708z"/>
+                </svg>
+            </summary>
+            <div class="absolute left-0 top-full mt-2 w-60 bg-white rounded-2xl shadow-card border border-brand-border p-2 z-30">
+                <a href="{% url 'planificacion:programaciones_listado' %}"
+                   class="block px-4 py-2.5 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Programación
+                    de clases</a>
+            </div>
+        </details>
+        <details name="nav-dropdown" class="nav-dropdown relative">
+            <summary
+                    class="flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-medium cursor-pointer transition-colors {% if request.resolver_match.app_name == 'asignaciones' %}bg-brand-dark text-white{% else %}text-brand-dark hover:bg-white/50{% endif %}">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill="currentColor"
+                          d="M2.02 19.385v-3.5q0-.6.395-1.031q.394-.431.97-.47h2.89q.404 0 .767.193q.364.192.6.56q.764 1.07 1.903 1.66q1.14.588 2.455.588q1.321 0 2.47-.589q1.15-.588 1.907-1.66q.248-.367.609-.559q.36-.192.739-.192h2.89q.581.038.983.469q.402.43.402 1.03v3.5h-6v-2.428q-.836.683-1.859 1.056q-1.022.373-2.141.373q-1.094 0-2.11-.367q-1.015-.366-1.87-1.049v2.416zm9.98-3.77q-.854 0-1.617-.399q-.764-.399-1.281-1.097q-.348-.49-.822-.833t-1.032-.497q.723-.637 2.123-.963T12 11.5t2.629.326t2.142.963q-.552.153-1.029.497t-.825.833q-.492.723-1.265 1.11T12 15.616m-7.423-3q-1.02 0-1.76-.741q-.74-.74-.74-1.76q0-1.044.74-1.772q.74-.727 1.76-.727q1.044 0 1.772.727q.728.728.728 1.773q0 1.019-.728 1.759t-1.772.74m14.846 0q-1.02 0-1.76-.74t-.74-1.76q0-1.044.74-1.772q.74-.727 1.76-.727q1.044 0 1.772.727q.728.728.728 1.773q0 1.019-.728 1.759t-1.772.74m-7.423-3q-1.02 0-1.76-.74t-.74-1.76q0-1.044.74-1.772q.74-.727 1.76-.727q1.044 0 1.772.727q.728.728.728 1.773q0 1.019-.728 1.759T12 9.615"/>
+                </svg>
+                <span>Asignaciones</span>
+                <svg class="w-3.5 h-3.5 nav-caret" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill="currentColor" d="M12 14.708L6.692 9.4l.708-.708l4.6 4.6l4.6-4.6l.708.708z"/>
+                </svg>
+            </summary>
+            <div class="absolute left-0 top-full mt-2 w-60 bg-white rounded-2xl shadow-card border border-brand-border p-2 z-30">
+                <a href="{% url 'asignaciones:listado' %}"
+                   class="block px-4 py-2.5 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Todas
+                    las parejas</a>
+                <a href="{% url 'academico:clases_listado' %}"
+                   class="block px-4 py-2.5 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Ver
+                    por clase / crear nueva</a>
+            </div>
+        </details>
+    </div>
+
+    <!-- Botón menú móvil -->
+    <button
+            type="button"
+            id="mobile-menu-toggle"
+            class="lg:hidden bg-white p-2.5 rounded-full shadow-sm border border-brand-border text-brand-dark hover:bg-gray-50"
+            aria-expanded="false"
+            aria-controls="mobile-menu"
+            aria-label="Abrir menú de navegación"
+    >
+        <span id="icon-menu-open"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path
+                fill="currentColor" d="M4 17.27v-1h16v1zm0-4.77v-1h16v1zm0-4.77v-1h16v1z"/></svg></span>
+        <span id="icon-menu-close"><svg class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="currentColor"
+                                        aria-hidden="true"><path fill="currentColor"
+                                                                 d="m6.4 18.308l-.708-.708l5.6-5.6l-5.6-5.6l.708-.708l5.6 5.6l5.6-5.6l.708.708l-5.6 5.6l5.6 5.6l-.708.708l-5.6-5.6z"/></svg></span>
+    </button>
+</nav>
+
+<!-- Menu principal (móvil) -->
+<div id="mobile-menu"
+     class="hidden lg:hidden mb-8 bg-brand-card rounded-3xl shadow-card divide-y divide-dashed divide-brand-border overflow-hidden">
+    <div class="py-2">
+        <a href="{% url 'inicio' %}"
+           class="block px-4 py-2 text-xs font-semibold uppercase tracking-wide {% if request.resolver_match.url_name == 'inicio' %}text-brand-accent{% else %}text-brand-muted{% endif %}">
+            Inicio
+        </a>
+    </div>
+    <div class="py-2">
+        <div class="flex items-center gap-2 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide {% if request.resolver_match.app_name == 'estudiantes' %}text-brand-accent{% else %}text-brand-muted{% endif %}">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path fill="currentColor"
+                      d="M2.596 18.616v-1.647q0-.696.36-1.197q.361-.5.971-.799q1.3-.621 2.583-.99q1.282-.367 3.086-.367t3.087.368t2.583.989q.609.298.97.799q.36.501.36 1.197v1.647zm16 0v-1.693q0-.87-.353-1.641q-.352-.772-.997-1.324q.737.15 1.42.416q.682.267 1.35.599q.65.327 1.019.834t.369 1.116v1.693zM7.473 10.508q-.877-.877-.877-2.123t.877-2.123t2.123-.877t2.123.877t.877 2.123t-.877 2.123t-2.123.877t-2.123-.877m8.516 0q-.877.877-2.123.877q-.064 0-.162-.015t-.162-.031q.502-.628.778-1.381q.276-.754.276-1.573q0-.82-.285-1.564q-.286-.744-.769-1.39q.081-.029.162-.038t.162-.008q1.246 0 2.123.877t.877 2.123t-.877 2.123"/>
+            </svg>
+            <span>Estudiantes</span>
+        </div>
+        <a href="{% url 'estudiantes:listado' %}"
+           class="block px-4 py-2 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Listado de
+            estudiantes</a>
+        <a href="{% url 'estudiantes:crear' %}"
+           class="block px-4 py-2 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">+ Nuevo
+            estudiante</a>
+    </div>
+    <div class="py-2">
+        <div class="flex items-center gap-2 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide {% if request.resolver_match.app_name == 'docencia' %}text-brand-accent{% else %}text-brand-muted{% endif %}">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path fill="currentColor"
+                      d="M19.923 15.385V9.562L12 13.846L3.077 9L12 4.154L20.923 9v6.385zM12 18.692l-6-3.261v-4.077l6 3.262l6-3.262v4.077z"/>
+            </svg>
+            <span>Docencia</span>
+        </div>
+        <a href="{% url 'docencia:listado' %}"
+           class="block px-4 py-2 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Instructores</a>
+        <a href="{% url 'docencia:temas_listado' %}"
+           class="block px-4 py-2 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Temas</a>
+    </div>
+    <div class="py-2">
+        <div class="flex items-center gap-2 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide {% if request.resolver_match.app_name == 'academico' %}text-brand-accent{% else %}text-brand-muted{% endif %}">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path fill="currentColor"
+                      d="M12 14.154q-.31 0-.54-.23t-.23-.54t.23-.539t.54-.23t.54.23t.23.54t-.23.539t-.54.23m-4.54-.23q-.23-.23-.23-.54q0-.309.23-.539t.54-.23t.54.23t.23.54t-.23.539t-.54.23t-.54-.23m8.54.23q-.31 0-.54-.23t-.23-.54t.23-.539t.54-.23t.54.23t.23.54t-.23.539t-.54.23M12 18q-.31 0-.54-.23t-.23-.54t.23-.539t.54-.23t.54.23t.23.54t-.23.54T12 18m-4.54-.23q-.23-.23-.23-.54q0-.309.23-.539t.54-.23t.54.23t.23.54t-.23.54Q8.31 18 8 18t-.54-.23M16 18q-.31 0-.54-.23t-.23-.54t.23-.539t.54-.23t.54.23t.23.54t-.23.54T16 18M5.616 21q-.691 0-1.153-.462T4 19.385V6.615q0-.69.463-1.152T5.616 5h1.769V2.77h1.077V5h7.154V2.77h1V5h1.769q.69 0 1.153.463T20 6.616v12.769q0 .69-.462 1.153T18.384 21zm0-1h12.769q.23 0 .423-.192t.192-.424v-8.768H5v8.769q0 .23.192.423t.423.192"/>
+            </svg>
+            <span>Académico</span>
+        </div>
+        <a href="{% url 'academico:ediciones_listado' %}"
+           class="block px-4 py-2 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Ediciones</a>
+        <a href="{% url 'academico:clases_listado' %}"
+           class="block px-4 py-2 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Clases</a>
+    </div>
+    <div class="py-2">
+        <div class="flex items-center gap-2 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide {% if request.resolver_match.app_name == 'planificacion' %}text-brand-accent{% else %}text-brand-muted{% endif %}">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path fill="currentColor"
+                      d="M13.389 17.38q-.62-.618-.62-1.495t.62-1.496t1.496-.62q.877 0 1.496.62T17 15.885t-.62 1.496t-1.495.619t-1.496-.62M5.616 21q-.691 0-1.153-.462T4 19.385V6.615q0-.69.463-1.152T5.616 5h1.769V2.77h1.077V5h7.154V2.77h1V5h1.769q.69 0 1.153.463T20 6.616v12.769q0 .69-.462 1.153T18.384 21zm0-1h12.769q.23 0 .423-.192t.192-.424v-8.768H5v8.769q0 .23.192.423t.423.192"/>
+            </svg>
+            <span>Planificación</span>
+        </div>
+        <a href="{% url 'planificacion:programaciones_listado' %}"
+           class="block px-4 py-2 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Programación
+            de clases</a>
+    </div>
+    <div class="py-2">
+        <div class="flex items-center gap-2 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide {% if request.resolver_match.app_name == 'asignaciones' %}text-brand-accent{% else %}text-brand-muted{% endif %}">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path fill="currentColor"
+                      d="M2.02 19.385v-3.5q0-.6.395-1.031q.394-.431.97-.47h2.89q.404 0 .767.193q.364.192.6.56q.764 1.07 1.903 1.66q1.14.588 2.455.588q1.321 0 2.47-.589q1.15-.588 1.907-1.66q.248-.367.609-.559q.36-.192.739-.192h2.89q.581.038.983.469q.402.43.402 1.03v3.5h-6v-2.428q-.836.683-1.859 1.056q-1.022.373-2.141.373q-1.094 0-2.11-.367q-1.015-.366-1.87-1.049v2.416zm9.98-3.77q-.854 0-1.617-.399q-.764-.399-1.281-1.097q-.348-.49-.822-.833t-1.032-.497q.723-.637 2.123-.963T12 11.5t2.629.326t2.142.963q-.552.153-1.029.497t-.825.833q-.492.723-1.265 1.11T12 15.616m-7.423-3q-1.02 0-1.76-.741q-.74-.74-.74-1.76q0-1.044.74-1.772q.74-.727 1.76-.727q1.044 0 1.772.727q.728.728.728 1.773q0 1.019-.728 1.759t-1.772.74m14.846 0q-1.02 0-1.76-.74t-.74-1.76q0-1.044.74-1.772q.74-.727 1.76-.727q1.044 0 1.772.727q.728.728.728 1.773q0 1.019-.728 1.759t-1.772.74m-7.423-3q-1.02 0-1.76-.74t-.74-1.76q0-1.044.74-1.772q.74-.727 1.76-.727q1.044 0 1.772.727q.728.728.728 1.773q0 1.019-.728 1.759T12 9.615"/>
+            </svg>
+            <span>Asignaciones</span>
+        </div>
+        <a href="{% url 'asignaciones:listado' %}"
+           class="block px-4 py-2 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Todas las
+            parejas</a>
+        <a href="{% url 'academico:clases_listado' %}"
+           class="block px-4 py-2 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Ver por
+            clase / crear nueva</a>
+    </div>
+</div>
+
+<script>
+    // JS mínimo e imprescindible para el layout (Subfase 5.1/5.2): solo
+    // abre/cierra el menú móvil. Ningún otro comportamiento interactivo
+    // se incorpora hasta la Fase 6.
+    (function () {
+        var toggle = document.getElementById('mobile-menu-toggle');
+        var menu = document.getElementById('mobile-menu');
+        var iconOpen = document.getElementById('icon-menu-open');
+        var iconClose = document.getElementById('icon-menu-close');
+        if (!toggle || !menu) return;
+
+        toggle.addEventListener('click', function () {
+            var willOpen = menu.classList.contains('hidden');
+            menu.classList.toggle('hidden');
+            iconOpen.classList.toggle('hidden');
+            iconClose.classList.toggle('hidden');
+            toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        });
+    })();
+</script>

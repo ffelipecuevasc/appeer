@@ -14,6 +14,26 @@ from apps.asignaciones import selectors, services
 from apps.asignaciones.forms import ParejaForm
 from apps.asignaciones.serializers import ParejaDTO
 
+class ParejaListView(ListView):
+    """
+    Listado general de apps.asignaciones (Subfase 5.2, registrado en
+    Adenda 7): a diferencia de ParejaPorClaseListView, no depende de
+    una Clase en la URL. Reutiliza el mismo Selector/Serializer ya
+    existentes desde la Fase 4 (selectors.listar_parejas /
+    ParejaDTO), sin alterarlos.
+    """
+    template_name = "asignaciones/pareja_list.html"
+    context_object_name = "parejas"
+    paginate_by = 20
+
+    def get_queryset(self):
+        return selectors.listar_parejas()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["parejas"] = [ParejaDTO.from_model(p) for p in context["parejas"]]
+        return context
+
 
 class ParejaPorClaseListView(ListView):
     """

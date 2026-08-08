@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio · AppEER{% endblock %}
+
+{% block content %}
+    <header class="mb-8">
+        <h1 class="text-3xl font-medium text-brand-dark">Bienvenido a AppEER</h1>
+        <p class="text-sm text-brand-muted">Resumen general de la escuela de capacitación.</p>
+    </header>
+
+    <!-- Tarjetas de resumen por app -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <a href="{% url 'estudiantes:listado' %}"
+           class="bg-brand-card rounded-3xl p-6 shadow-card hover:shadow-md transition-shadow block">
+            <div class="w-10 h-10 rounded-full bg-brand-accent/10 flex items-center justify-center mb-4 text-brand-accent">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill="currentColor"
+                          d="M2.596 18.616v-1.647q0-.696.36-1.197q.361-.5.971-.799q1.3-.621 2.583-.99q1.282-.367 3.086-.367t3.087.368t2.583.989q.609.298.97.799q.36.501.36 1.197v1.647zm16 0v-1.693q0-.87-.353-1.641q-.352-.772-.997-1.324q.737.15 1.42.416q.682.267 1.35.599q.65.327 1.019.834t.369 1.116v1.693zM7.473 10.508q-.877-.877-.877-2.123t.877-2.123t2.123-.877t2.123.877t.877 2.123t-.877 2.123t-2.123.877t-2.123-.877m8.516 0q-.877.877-2.123.877q-.064 0-.162-.015t-.162-.031q.502-.628.778-1.381q.276-.754.276-1.573q0-.82-.285-1.564q-.286-.744-.769-1.39q.081-.029.162-.038t.162-.008q1.246 0 2.123.877t.877 2.123t-.877 2.123"/>
+                </svg>
+            </div>
+            <p class="text-3xl font-semibold text-brand-dark">{{ total_estudiantes }}</p>
+            <p class="text-sm text-brand-muted mt-1">Estudiantes</p>
+        </a>
+        <a href="{% url 'docencia:listado' %}"
+           class="bg-brand-card rounded-3xl p-6 shadow-card hover:shadow-md transition-shadow block">
+            <div class="w-10 h-10 rounded-full bg-brand-accent/10 flex items-center justify-center mb-4 text-brand-accent">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill="currentColor"
+                          d="M19.923 15.385V9.562L12 13.846L3.077 9L12 4.154L20.923 9v6.385zM12 18.692l-6-3.261v-4.077l6 3.262l6-3.262v4.077z"/>
+                </svg>
+            </div>
+            <p class="text-3xl font-semibold text-brand-dark">{{ total_instructores }}</p>
+            <p class="text-sm text-brand-muted mt-1">Instructores</p>
+        </a>
+        <a href="{% url 'academico:ediciones_listado' %}"
+           class="bg-brand-card rounded-3xl p-6 shadow-card hover:shadow-md transition-shadow block">
+            <div class="w-10 h-10 rounded-full bg-brand-accent/10 flex items-center justify-center mb-4 text-brand-accent">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill="currentColor"
+                          d="M12 14.154q-.31 0-.54-.23t-.23-.54t.23-.539t.54-.23t.54.23t.23.54t-.23.539t-.54.23m-4.54-.23q-.23-.23-.23-.54q0-.309.23-.539t.54-.23t.54.23t.23.54t-.23.539t-.54.23t-.54-.23m8.54.23q-.31 0-.54-.23t-.23-.54t.23-.539t.54-.23t.54.23t.23.54t-.23.539t-.54.23M12 18q-.31 0-.54-.23t-.23-.54t.23-.539t.54-.23t.54.23t.23.54t-.23.54T12 18m-4.54-.23q-.23-.23-.23-.54q0-.309.23-.539t.54-.23t.54.23t.23.54t-.23.54Q8.31 18 8 18t-.54-.23M16 18q-.31 0-.54-.23t-.23-.54t.23-.539t.54-.23t.54.23t.23.54t-.23.54T16 18M5.616 21q-.691 0-1.153-.462T4 19.385V6.615q0-.69.463-1.152T5.616 5h1.769V2.77h1.077V5h7.154V2.77h1V5h1.769q.69 0 1.153.463T20 6.616v12.769q0 .69-.462 1.153T18.384 21zm0-1h12.769q.23 0 .423-.192t.192-.424v-8.768H5v8.769q0 .23.192.423t.423.192"/>
+                </svg>
+            </div>
+            <p class="text-3xl font-semibold text-brand-dark">{{ total_ediciones }}</p>
+            <p class="text-sm text-brand-muted mt-1">Ediciones</p>
+        </a>
+        <a href="{% url 'asignaciones:listado' %}"
+           class="bg-brand-card rounded-3xl p-6 shadow-card hover:shadow-md transition-shadow block">
+            <div class="w-10 h-10 rounded-full bg-brand-accent/10 flex items-center justify-center mb-4 text-brand-accent">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill="currentColor"
+                          d="M2.02 19.385v-3.5q0-.6.395-1.031q.394-.431.97-.47h2.89q.404 0 .767.193q.364.192.6.56q.764 1.07 1.903 1.66q1.14.588 2.455.588q1.321 0 2.47-.589q1.15-.588 1.907-1.66q.248-.367.609-.559q.36-.192.739-.192h2.89q.581.038.983.469q.402.43.402 1.03v3.5h-6v-2.428q-.836.683-1.859 1.056q-1.022.373-2.141.373q-1.094 0-2.11-.367q-1.015-.366-1.87-1.049v2.416zm9.98-3.77q-.854 0-1.617-.399q-.764-.399-1.281-1.097q-.348-.49-.822-.833t-1.032-.497q.723-.637 2.123-.963T12 11.5t2.629.326t2.142.963q-.552.153-1.029.497t-.825.833q-.492.723-1.265 1.11T12 15.616m-7.423-3q-1.02 0-1.76-.741q-.74-.74-.74-1.76q0-1.044.74-1.772q.74-.727 1.76-.727q1.044 0 1.772.727q.728.728.728 1.773q0 1.019-.728 1.759t-1.772.74m14.846 0q-1.02 0-1.76-.74t-.74-1.76q0-1.044.74-1.772q.74-.727 1.76-.727q1.044 0 1.772.727q.728.728.728 1.773q0 1.019-.728 1.759t-1.772.74m-7.423-3q-1.02 0-1.76-.74t-.74-1.76q0-1.044.74-1.772q.74-.727 1.76-.727q1.044 0 1.772.727q.728.728.728 1.773q0 1.019-.728 1.759T12 9.615"/>
+                </svg>
+            </div>
+            <p class="text-3xl font-semibold text-brand-dark">{{ total_parejas }}</p>
+            <p class="text-sm text-brand-muted mt-1">Parejas formadas</p>
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Próximas programaciones -->
+        <section class="lg:col-span-2 bg-brand-card rounded-3xl shadow-card p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-medium text-brand-dark">Próximas programaciones</h2>
+                <a href="{% url 'planificacion:programaciones_listado' %}"
+                   class="text-sm text-brand-accent hover:underline">Ver todas</a>
+            </div>
+            <div class="divide-y divide-dashed divide-brand-border">
+                {% for p in proximas_programaciones %}
+                    <a href="{% url 'planificacion:programaciones_detalle' id_programacion=p.id_programacion %}"
+                       class="flex items-center justify-between py-3 -mx-2 px-2 rounded-xl hover:bg-brand-bg/40 transition-colors">
+                        <div>
+                            <p class="text-sm font-medium text-brand-dark">{{ p.tema_titulo }}</p>
+                            <p class="text-xs text-brand-muted">{{ p.edicion_nombre }} &middot;
+                                Semana {{ p.numero_semana }} &middot; {{ p.dia_semana }}
+                                &middot; {{ p.instructor_nombre_completo }}</p>
+                        </div>
+                        <span class="text-xs px-3 py-1 rounded-full bg-brand-accent/10 text-brand-accent font-medium flex-shrink-0 ml-4">Aula {{ p.numero_aula }}</span>
+                    </a>
+                {% empty %}
+                    <p class="text-sm text-brand-muted text-center py-10">Todavía no hay programaciones registradas.</p>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Accesos rápidos -->
+        <section class="bg-brand-dark rounded-3xl shadow-card p-6 text-white">
+            <h2 class="text-lg font-medium mb-4">Accesos rápidos</h2>
+            <div class="space-y-1">
+                <a href="{% url 'estudiantes:crear' %}"
+                   class="block px-4 py-3 rounded-2xl text-sm hover:bg-white/10 transition-colors">+ Nuevo
+                    estudiante</a>
+                <a href="{% url 'docencia:crear' %}"
+                   class="block px-4 py-3 rounded-2xl text-sm hover:bg-white/10 transition-colors">+ Nuevo
+                    instructor</a>
+                <a href="{% url 'academico:ediciones_crear' %}"
+                   class="block px-4 py-3 rounded-2xl text-sm hover:bg-white/10 transition-colors">+ Nueva edición</a>
+                <a href="{% url 'academico:clases_crear' %}"
+                   class="block px-4 py-3 rounded-2xl text-sm hover:bg-white/10 transition-colors">+ Nueva clase</a>
+                <a href="{% url 'planificacion:programaciones_crear' %}"
+                   class="block px-4 py-3 rounded-2xl text-sm hover:bg-white/10 transition-colors">+ Nueva
+                    programación</a>
+            </div>
+        </section>
+
+    </div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar sesión · AppEER</title>
+
+    <!--
+  Página SIN nav/footer del proyecto, a propósito: es el mismo criterio
+  que trae login_PROTOTIPO.html ("Navigation shell suppressed"). No
+  extiende base.html. Solo visual (Subfase Adenda 7) — sin lógica de
+  autenticación: eso es Fase 8. El <form> ya trae {% csrf_token %}
+  y method="post" listos para cuando exista la vista real.
+-->
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {sans: ['Inter', 'sans-serif']},
+                    colors: {
+                        brand: {
+                            bg: '#E2F0FD',
+                            card: '#FFFFFF',
+                            dark: '#1C3861',
+                            accent: '#267AE9',
+                            text: '#2D3748',
+                            muted: '#A0AEC0',
+                            border: '#E2E8F0',
+                        },
+                    },
+                },
+            },
+        };
+    </script>
+</head>
+<body class="min-h-screen flex bg-brand-bg font-sans text-brand-text antialiased">
+
+<!-- Panel izquierdo (60%): marca, sin foto externa -->
+<div class="hidden lg:flex w-3/5 relative overflow-hidden bg-gradient-to-br from-brand-dark to-brand-accent p-12 flex-col justify-between">
+    <div class="absolute -right-16 -bottom-16 opacity-10 text-white">
+        <svg class="w-72 h-72" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path fill="currentColor"
+                  d="M19.923 15.385V9.562L12 13.846L3.077 9L12 4.154L20.923 9v6.385zM12 18.692l-6-3.261v-4.077l6 3.262l6-3.262v4.077z"/>
+        </svg>
+    </div>
+    <span class="relative text-xl font-semibold text-white">AppEER</span>
+    <div class="relative">
+        <h1 class="text-4xl font-medium text-white mb-3 max-w-md">Sistema de Gestión Integral de Escuela de
+            Capacitación</h1>
+        <p class="text-white/80 max-w-sm">Estudiantes, docencia, ediciones, programación y asignaciones, todo en un
+            mismo lugar.</p>
+    </div>
+</div>
+
+<!-- Panel derecho (40%): formulario -->
+<div class="w-full lg:w-2/5 flex flex-col justify-center px-6 sm:px-12 lg:px-16 py-12">
+    <div class="w-full max-w-sm mx-auto">
+
+        <div class="mb-8 lg:hidden text-center">
+            <span class="text-xl font-semibold text-brand-dark">AppEER</span>
+        </div>
+
+        <div class="mb-8">
+            <h2 class="text-2xl font-medium text-brand-dark mb-1">Iniciar sesión</h2>
+            <p class="text-sm text-brand-muted">Ingresa tus credenciales para continuar.</p>
+        </div>
+
+        <form method="post" action="" class="space-y-5">
+            {% csrf_token %}
+
+            <div>
+                <label for="username" class="block text-xs font-medium text-brand-dark mb-1.5">Usuario</label>
+                <input type="text" id="username" name="username" autocomplete="username"
+                       class="w-full px-4 py-2.5 rounded-xl border border-brand-border bg-white text-brand-text text-sm
+                      focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent transition-shadow">
+            </div>
+
+            <div>
+                <label for="password" class="block text-xs font-medium text-brand-dark mb-1.5">Contraseña</label>
+                <input type="password" id="password" name="password" autocomplete="current-password"
+                       class="w-full px-4 py-2.5 rounded-xl border border-brand-border bg-white text-brand-text text-sm
+                      focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent transition-shadow">
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="remember" name="remember"
+                           class="h-4 w-4 rounded border-brand-border text-brand-accent focus:ring-brand-accent">
+                    <span class="text-sm text-brand-muted">Recordarme</span>
+                </label>
+                <a href="#" class="text-sm text-brand-accent hover:underline">¿Olvidaste tu contraseña?</a>
+            </div>
+
+            <button type="submit"
+                    class="w-full py-3 rounded-full bg-brand-accent text-white text-sm font-medium hover:opacity-90 transition-opacity">
+                Iniciar sesión
+            </button>
+        </form>
+
+    </div>
+</div>
+
+</body>
+</html>
