@@ -1,0 +1,35 @@
+{% for estudiante in estudiantes %}
+    <tr class="hover:bg-brand-bg/40 transition-colors">
+        <td class="px-6 py-4 font-medium text-brand-dark">{{ estudiante.apellido }}</td>
+        <td class="px-6 py-4">{{ estudiante.nombre }}</td>
+        <td class="px-6 py-4">
+    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
+                 {% if estudiante.genero == 'MASCULINO' %}bg-brand-accent/10 text-brand-accent{% else %}bg-pink-50 text-pink-600{% endif %}">
+      {{ estudiante.genero|title }}
+    </span>
+        </td>
+        <td class="px-6 py-4 text-brand-muted">
+            {% if estudiante.fecha_nacimiento %}{{ estudiante.fecha_nacimiento|date:"d/m/Y" }}{% else %}—{% endif %}
+        </td>
+        <td class="px-6 py-4 text-brand-muted">
+            {% if estudiante.matrimonio_id %}Matrimonio #{{ estudiante.matrimonio_id }}{% else %}—{% endif %}
+        </td>
+        <td class="px-6 py-4 text-right">
+            <div class="inline-flex items-center gap-4">
+                <a href="{% url 'estudiantes:detalle' id_estudiante=estudiante.id_estudiante %}"
+                   class="text-brand-accent text-sm font-medium hover:underline">Ver</a>
+                <a href="{% url 'estudiantes:editar' id_estudiante=estudiante.id_estudiante %}"
+                   class="text-brand-dark text-sm font-medium hover:underline">Editar</a>
+                <a href="{% url 'estudiantes:eliminar' id_estudiante=estudiante.id_estudiante %}"
+                   class="text-red-600 text-sm font-medium hover:underline">Eliminar</a>
+            </div>
+        </td>
+    </tr>
+{% empty %}
+    <tr>
+        <td colspan="6" class="px-6 py-10 text-center text-brand-muted">
+            {% if query %}No se encontraron estudiantes que coincidan con &ldquo;{{ query }}&rdquo;.{% else %}No hay
+                estudiantes registrados todavía.{% endif %}
+        </td>
+    </tr>
+{% endfor %}

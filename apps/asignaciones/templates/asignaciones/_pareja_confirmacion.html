@@ -1,0 +1,21 @@
+<div class="text-center py-6">
+    <div class="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mb-4 mx-auto">
+        <svg class="w-8 h-8 text-green-600" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path fill="currentColor"
+                  d="m10.562 15.908l6.396-6.396l-.708-.708l-5.688 5.688l-2.85-2.85l-.708.708zM12.003 21q-1.866 0-3.51-.708q-1.643-.709-2.859-1.924t-1.925-2.856T3 12.003t.709-3.51Q4.417 6.85 5.63 5.634t2.857-1.925T11.997 3t3.51.709q1.643.708 2.859 1.922t1.925 2.857t.709 3.509t-.708 3.51t-1.924 2.859t-2.856 1.925t-3.509.709"/>
+        </svg>
+    </div>
+    <h2 class="text-lg font-medium text-brand-dark mb-1">Pareja creada correctamente</h2>
+    <p class="text-sm text-brand-muted mb-6">{{ pareja.estudiante_1_nombre_completo }}
+        y {{ pareja.estudiante_2_nombre_completo }} ya están asignados a esta clase.</p>
+    <div class="flex justify-center gap-3">
+        <a href="{% url 'asignaciones:parejas_por_clase' id_clase=clase.id_clase %}"
+           class="px-5 py-2.5 rounded-full bg-brand-accent text-white text-sm font-medium hover:opacity-90 transition-opacity">
+            Volver a la clase
+        </a>
+        <a href="{% url 'asignaciones:parejas_crear' id_clase=clase.id_clase %}"
+           class="px-5 py-2.5 rounded-full border border-brand-border text-sm font-medium text-brand-dark hover:bg-brand-bg/60 transition-colors">
+            Crear otra
+        </a>
+    </div>
+</div>

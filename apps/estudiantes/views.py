@@ -12,22 +12,38 @@ from django.views.generic import CreateView, DeleteView, DetailView, ListView, U
 from apps.estudiantes import selectors, services
 from apps.estudiantes.forms import EstudianteForm
 from apps.estudiantes.serializers import EstudianteDTO
+from core.mixins import AjaxRequestMixin
 
 
-class EstudianteListView(ListView):
+class EstudianteListView(AjaxRequestMixin, ListView):
+    """
+    Subfase 6.2: expone búsqueda por ?q= (funciona con GET normal,
+    sin JS — mejora progresiva) y, cuando la petición viene marcada
+    como AJAX (AjaxRequestMixin, core/mixins.py — Subfase 6.4),
+    responde solo con el fragmento de filas en vez de la página
+    completa. La Subfase 6.3 conecta el <input> de búsqueda a esto
+    vía fetch.
+    """
     template_name = "estudiantes/estudiante_list.html"
     context_object_name = "estudiantes"
     paginate_by = 20
 
     def get_queryset(self):
-        return selectors.listar_estudiantes()
+        query = self.request.GET.get("q", "").strip()
+        return selectors.listar_estudiantes(query=query or None)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["estudiantes"] = [
             EstudianteDTO.from_model(e) for e in context["estudiantes"]
         ]
+        context["query"] = self.request.GET.get("q", "").strip()
         return context
+
+    def get_template_names(self):
+        if self.is_ajax():
+            return ["estudiantes/_estudiante_rows.html"]
+        return [self.template_name]
 
 
 class EstudianteDetailView(DetailView):

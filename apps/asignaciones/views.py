@@ -4,7 +4,7 @@ en selectors.py (lectura) o services.py (escritura).
 """
 from django.core.exceptions import ValidationError
 from django.http import Http404
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
@@ -13,6 +13,8 @@ from apps.academico.serializers import ClaseDTO
 from apps.asignaciones import selectors, services
 from apps.asignaciones.forms import ParejaForm
 from apps.asignaciones.serializers import ParejaDTO
+from core.mixins import AjaxRequestMixin
+
 
 class ParejaListView(ListView):
     """
@@ -60,7 +62,19 @@ class ParejaPorClaseListView(ListView):
         return context
 
 
-class ParejaCreateView(CreateView):
+class ParejaCreateView(AjaxRequestMixin, CreateView):
+    """
+    Subfase 6.4: ante una petición fetch de escritura (mismo header
+    X-Requested-With que detecta AjaxRequestMixin), responde con un
+    fragmento en vez de un redirect/página completa — de confirmación
+    si se creó (201) o del formulario con errores si no (422). Sin
+    JS, el comportamiento es exactamente el de antes: redirect a la
+    clase si se creó, página completa con errores si no.
+
+    Solo esta vista (creación). ParejaUpdateView queda fuera del
+    alcance de esta subfase — el Plan de Trabajo la especifica para
+    "vista de creación de pareja" puntualmente.
+    """
     form_class = ParejaForm
     template_name = "asignaciones/pareja_form.html"
 
@@ -82,7 +96,7 @@ class ParejaCreateView(CreateView):
 
     def form_valid(self, form):
         try:
-            services.crear_pareja(
+            pareja = services.crear_pareja(
                 clase=self.clase,
                 estudiante_1=form.cleaned_data["estudiante_1"],
                 estudiante_2=form.cleaned_data["estudiante_2"],
@@ -91,7 +105,22 @@ class ParejaCreateView(CreateView):
         except ValidationError as exc:
             form.add_error(None, exc)
             return self.form_invalid(form)
+
+        if self.is_ajax():
+            context = self.get_context_data(form=form)
+            context["pareja"] = ParejaDTO.from_model(pareja)
+            return render(
+                self.request, "asignaciones/_pareja_confirmacion.html", context, status=201
+            )
         return redirect("asignaciones:parejas_por_clase", id_clase=self.clase.pk)
+
+    def form_invalid(self, form):
+        if self.is_ajax():
+            context = self.get_context_data(form=form)
+            return render(
+                self.request, "asignaciones/_pareja_form_inner.html", context, status=422
+            )
+        return super().form_invalid(form)
 
 
 class ParejaDetailView(DetailView):

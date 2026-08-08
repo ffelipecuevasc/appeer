@@ -14,9 +14,18 @@ from apps.estudiantes.models import Estudiante, Matrimonio
 _MAX_INTEGRANTES_POR_MATRIMONIO_UI = 2
 
 
-def listar_estudiantes():
-    """Queryset base de estudiantes, con el matrimonio precargado."""
-    return Estudiante.objects.select_related("matrimonio").order_by("apellido", "nombre")
+def listar_estudiantes(*, query=None):
+    """
+    Queryset base de estudiantes, con el matrimonio precargado.
+    Si `query` viene informado (Subfase 6.2, buscador en vivo),
+    filtra por coincidencia parcial case-insensitive en nombre o
+    apellido. Parámetro opcional: el único call-site previo a esta
+    subfase sigue funcionando sin pasar nada.
+    """
+    qs = Estudiante.objects.select_related("matrimonio").order_by("apellido", "nombre")
+    if query:
+        qs = qs.filter(Q(nombre__icontains=query) | Q(apellido__icontains=query))
+    return qs
 
 
 def obtener_estudiante_por_id(id_estudiante):

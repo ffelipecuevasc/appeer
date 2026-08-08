@@ -1,74 +1,74 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Estudiantes · AppEER{% endblock %}
 
 {% block content %}
-<header class="mb-6 flex items-center justify-between">
-  <div>
-    <h1 class="text-3xl font-medium text-brand-dark">Estudiantes</h1>
-    <p class="text-sm text-brand-muted">Listado general de estudiantes registrados.</p>
-  </div>
-  <a href="{% url 'estudiantes:crear' %}"
-     class="px-5 py-2.5 rounded-full bg-brand-accent text-white text-sm font-medium hover:opacity-90 transition-opacity">
-    + Nuevo estudiante
-  </a>
-</header>
+    <header class="mb-6 flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-medium text-brand-dark">Estudiantes</h1>
+            <p class="text-sm text-brand-muted">Listado general de estudiantes registrados.</p>
+        </div>
+        <a href="{% url 'estudiantes:crear' %}"
+           class="px-5 py-2.5 rounded-full bg-brand-accent text-white text-sm font-medium hover:opacity-90 transition-opacity">
+            + Nuevo estudiante
+        </a>
+    </header>
 
-<section class="bg-brand-card rounded-3xl shadow-card overflow-hidden">
-  <table class="w-full text-left text-sm">
-    <thead class="bg-brand-bg/60 text-brand-dark uppercase text-xs tracking-wide">
-      <tr>
-        <th class="px-6 py-4">Apellido</th>
-        <th class="px-6 py-4">Nombre</th>
-        <th class="px-6 py-4">Género</th>
-        <th class="px-6 py-4">Fecha nacimiento</th>
-        <th class="px-6 py-4">Matrimonio</th>
-        <th class="px-6 py-4"></th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-brand-border">
-      {% for estudiante in estudiantes %}
-      <tr class="hover:bg-brand-bg/40 transition-colors">
-        <td class="px-6 py-4 font-medium text-brand-dark">{{ estudiante.apellido }}</td>
-        <td class="px-6 py-4">{{ estudiante.nombre }}</td>
-        <td class="px-6 py-4">
-          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
-                       {% if estudiante.genero == 'MASCULINO' %}bg-brand-accent/10 text-brand-accent{% else %}bg-pink-50 text-pink-600{% endif %}">
-            {{ estudiante.genero|title }}
-          </span>
-        </td>
-        <td class="px-6 py-4 text-brand-muted">
-          {% if estudiante.fecha_nacimiento %}{{ estudiante.fecha_nacimiento|date:"d/m/Y" }}{% else %}—{% endif %}
-        </td>
-        <td class="px-6 py-4 text-brand-muted">
-          {% if estudiante.matrimonio_id %}Matrimonio #{{ estudiante.matrimonio_id }}{% else %}—{% endif %}
-        </td>
-        <td class="px-6 py-4 text-right">
-          <div class="inline-flex items-center gap-4">
-            <a href="{% url 'estudiantes:detalle' id_estudiante=estudiante.id_estudiante %}" class="text-brand-accent text-sm font-medium hover:underline">Ver</a>
-            <a href="{% url 'estudiantes:editar' id_estudiante=estudiante.id_estudiante %}" class="text-brand-dark text-sm font-medium hover:underline">Editar</a>
-            <a href="{% url 'estudiantes:eliminar' id_estudiante=estudiante.id_estudiante %}" class="text-red-600 text-sm font-medium hover:underline">Eliminar</a>
-          </div>
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="6" class="px-6 py-10 text-center text-brand-muted">No hay estudiantes registrados todavía.</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</section>
+    <!--
+      Buscador (Subfase 6.2): form GET normal, funciona sin JS —
+      enviarlo recarga /estudiantes/?q=... con el listado ya filtrado
+      server-side. La Subfase 6.3 intercepta el input y lo convierte en
+      búsqueda en vivo vía fetch, sin recargar la página. Si JS falla o
+      está desactivado, esto sigue funcionando igual.
+    -->
+    <form method="get" class="mb-4" id="estudiante-search-form">
+        <input
+                type="search"
+                id="estudiante-search"
+                name="q"
+                value="{{ query|default:'' }}"
+                placeholder="Buscar por nombre o apellido…"
+                autocomplete="off"
+                class="w-full sm:w-80 px-4 py-2.5 rounded-xl border border-brand-border bg-white text-sm
+           focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent transition-shadow">
+    </form>
 
-{% if is_paginated %}
-<nav class="flex justify-center gap-2 mt-6">
-  {% if page_obj.has_previous %}
-    <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 rounded-full bg-brand-card shadow-card text-sm text-brand-dark">Anterior</a>
-  {% endif %}
-  <span class="px-4 py-2 text-sm text-brand-muted">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-  {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 rounded-full bg-brand-card shadow-card text-sm text-brand-dark">Siguiente</a>
-  {% endif %}
-</nav>
-{% endif %}
+    <section class="bg-brand-card rounded-3xl shadow-card overflow-hidden">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-brand-bg/60 text-brand-dark uppercase text-xs tracking-wide">
+            <tr>
+                <th class="px-6 py-4">Apellido</th>
+                <th class="px-6 py-4">Nombre</th>
+                <th class="px-6 py-4">Género</th>
+                <th class="px-6 py-4">Fecha nacimiento</th>
+                <th class="px-6 py-4">Matrimonio</th>
+                <th class="px-6 py-4"></th>
+            </tr>
+            </thead>
+            <tbody id="estudiante-rows" class="divide-y divide-brand-border">
+            {% include "estudiantes/_estudiante_rows.html" %}
+            </tbody>
+        </table>
+    </section>
+
+    {% if is_paginated %}
+        <nav id="estudiante-pagination" class="flex justify-center gap-2 mt-6">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}"
+                   class="px-4 py-2 rounded-full bg-brand-card shadow-card text-sm text-brand-dark">Anterior</a>
+            {% endif %}
+            <span class="px-4 py-2 text-sm text-brand-muted">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}"
+                   class="px-4 py-2 rounded-full bg-brand-card shadow-card text-sm text-brand-dark">Siguiente</a>
+            {% endif %}
+        </nav>
+    {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+    <!-- Módulo de página (Subfase 6.3): solo esta vista lo necesita, por
+         eso no vive en base.html junto al núcleo transversal. -->
+    <script src="{% static 'js/modules/estudiantes-search.js' %}" defer></script>
 {% endblock %}
