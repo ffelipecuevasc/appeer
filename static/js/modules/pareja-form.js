@@ -1,5 +1,5 @@
 /**
- * AppEER · static/js/modules/pareja-form.js  (Fase 6, Subfase 6.5)
+ * AppEER · static/js/modules/pareja-form.js  (Fase 6)
  * ---------------------------------------------------------------
  * Envía el formulario de "nueva pareja" por fetch, consumiendo el
  * endpoint de la Subfase 6.4 (201 + fragmento de confirmación, o
