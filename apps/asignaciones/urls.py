@@ -8,6 +8,7 @@ from apps.asignaciones import views
 app_name = "asignaciones"
 
 urlpatterns = [
+    path("", views.ParejaListView.as_view(), name="listado"),  # <- NUEVA
     path("clases/<int:id_clase>/", views.ParejaPorClaseListView.as_view(), name="parejas_por_clase"),
     path("clases/<int:id_clase>/nueva/", views.ParejaCreateView.as_view(), name="parejas_crear"),
     path("parejas/<int:id_pareja>/", views.ParejaDetailView.as_view(), name="parejas_detalle"),
