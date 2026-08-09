@@ -1,8 +1,9 @@
 """
-Vistas de error globales del proyecto (Subfase 5.3). No pertenecen a
-ninguna app de negocio — se registran como handler403/handler404/
-handler500 en AppEER/urls.py, y Django los usa automáticamente
-cuando DEBUG = False.
+Vistas de error globales del proyecto (Subfase 5.3, extendida en la
+Subfase 7.3). No pertenecen a ninguna app de negocio — se registran
+como handler403/handler404/handler500 en AppEER/urls.py (Django los
+usa automáticamente cuando DEBUG = False), y error_403 además como
+CSRF_FAILURE_VIEW en settings/base.py (Subfase 7.3).
 
 Nota de diseño importante: error_500() NO usa render() ni pasa
 `request` al renderizar. Es intencional: ante un error 500 real, no
@@ -23,7 +24,16 @@ from django.shortcuts import render
 from django.template import loader
 
 
-def error_403(request, exception=None):
+def error_403(request, exception=None, reason=""):
+    """
+    Handler genérico de 403 (PermissionDenied) Y, desde la Subfase
+    7.3, CSRF_FAILURE_VIEW: Django invoca esta última como
+    view(request, reason=texto), con una firma distinta a la de un
+    handler403 normal — por eso acepta ambos parámetros, exception y
+    reason, sin usar ninguno de los dos en el cuerpo. La razón del
+    fallo ya queda registrada por Django mismo en el logger
+    django.security.csrf; no hace falta duplicarla en la respuesta.
+    """
     return render(request, "errors/403.html", status=403)
 
 
