@@ -13,30 +13,10 @@ from apps.academico.serializers import ClaseDTO
 from apps.asignaciones import selectors, services
 from apps.asignaciones.forms import ParejaForm
 from apps.asignaciones.serializers import ParejaDTO
-from core.mixins import AjaxRequestMixin
+from core.mixins import AccessControlMixin
 
 
-class ParejaListView(ListView):
-    """
-    Listado general de apps.asignaciones (Subfase 5.2, registrado en
-    Adenda 7): a diferencia de ParejaPorClaseListView, no depende de
-    una Clase en la URL. Reutiliza el mismo Selector/Serializer ya
-    existentes desde la Fase 4 (selectors.listar_parejas /
-    ParejaDTO), sin alterarlos.
-    """
-    template_name = "asignaciones/pareja_list.html"
-    context_object_name = "parejas"
-    paginate_by = 20
-
-    def get_queryset(self):
-        return selectors.listar_parejas()
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["parejas"] = [ParejaDTO.from_model(p) for p in context["parejas"]]
-        return context
-
-class ParejaListView(ListView):
+class ParejaListView(AccessControlMixin, ListView):
     """
     Listado general de apps.asignaciones (Subfase 5.2, registrado en
     Adenda 7): a diferencia de ParejaPorClaseListView, no depende de
@@ -57,7 +37,7 @@ class ParejaListView(ListView):
         return context
 
 
-class ParejaPorClaseListView(ListView):
+class ParejaPorClaseListView(AccessControlMixin, ListView):
     """
     Vista de asignación por clase (entregable explícito de la Subfase
     4.4 del Plan de Trabajo): lista las parejas de una Clase puntual,
@@ -67,6 +47,12 @@ class ParejaPorClaseListView(ListView):
     context_object_name = "parejas"
 
     def dispatch(self, request, *args, **kwargs):
+        # Ver AccessControlMixin.bloqueo_si_no_autenticado (Subfase 8.2):
+        # esta vista define su propio dispatch(), el guard explícito es
+        # necesario para que la sesión se valide ANTES de la consulta.
+        bloqueo = self.bloqueo_si_no_autenticado(request)
+        if bloqueo is not None:
+            return bloqueo
         self.clase = academico_selectors.obtener_clase_por_id(self.kwargs["id_clase"])
         if self.clase is None:
             raise Http404("Clase no encontrada.")
@@ -82,7 +68,7 @@ class ParejaPorClaseListView(ListView):
         return context
 
 
-class ParejaCreateView(AjaxRequestMixin, CreateView):
+class ParejaCreateView(AccessControlMixin, CreateView):
     """
     Subfase 6.4: ante una petición fetch de escritura (mismo header
     X-Requested-With que detecta AjaxRequestMixin), responde con un
@@ -99,6 +85,12 @@ class ParejaCreateView(AjaxRequestMixin, CreateView):
     template_name = "asignaciones/pareja_form.html"
 
     def dispatch(self, request, *args, **kwargs):
+        # Ver AccessControlMixin.bloqueo_si_no_autenticado (Subfase 8.2):
+        # esta vista define su propio dispatch(), el guard explícito es
+        # necesario para que la sesión se valide ANTES de la consulta.
+        bloqueo = self.bloqueo_si_no_autenticado(request)
+        if bloqueo is not None:
+            return bloqueo
         self.clase = academico_selectors.obtener_clase_por_id(self.kwargs["id_clase"])
         if self.clase is None:
             raise Http404("Clase no encontrada.")
@@ -143,7 +135,7 @@ class ParejaCreateView(AjaxRequestMixin, CreateView):
         return super().form_invalid(form)
 
 
-class ParejaDetailView(DetailView):
+class ParejaDetailView(AccessControlMixin, DetailView):
     template_name = "asignaciones/pareja_detail.html"
     context_object_name = "pareja"
 
@@ -159,7 +151,7 @@ class ParejaDetailView(DetailView):
         return context
 
 
-class ParejaUpdateView(UpdateView):
+class ParejaUpdateView(AccessControlMixin, UpdateView):
     form_class = ParejaForm
     template_name = "asignaciones/pareja_form.html"
 
@@ -193,7 +185,7 @@ class ParejaUpdateView(UpdateView):
         return redirect("asignaciones:parejas_por_clase", id_clase=self.object.clase_id)
 
 
-class ParejaDeleteView(DeleteView):
+class ParejaDeleteView(AccessControlMixin, DeleteView):
     template_name = "asignaciones/pareja_confirm_delete.html"
 
     def get_object(self, queryset=None):

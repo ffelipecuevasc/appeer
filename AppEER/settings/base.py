@@ -76,6 +76,14 @@ PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.ScryptPasswordHasher",
 ]
 
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "inicio"
+LOGOUT_REDIRECT_URL = "login"
+
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 14
+
+SESSION_COOKIE_HTTPONLY = True
+
 DATABASES = {
     "default": {
         "ENGINE": env("DB_ENGINE"),

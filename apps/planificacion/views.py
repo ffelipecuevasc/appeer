@@ -12,9 +12,10 @@ from apps.academico.models import EdicionEscuela
 from apps.planificacion import selectors, services
 from apps.planificacion.forms import ProgramacionClaseForm
 from apps.planificacion.serializers import ProgramacionClaseDTO
+from core.mixins import AccessControlMixin
 
 
-class ProgramacionClaseListView(ListView):
+class ProgramacionClaseListView(AccessControlMixin, ListView):
     """
     Vista de horario: lista todas las programaciones ordenadas por
     edición/semana/día/aula (Meta.ordering del modelo), con filtro
@@ -40,7 +41,7 @@ class ProgramacionClaseListView(ListView):
         return context
 
 
-class ProgramacionClaseDetailView(DetailView):
+class ProgramacionClaseDetailView(AccessControlMixin, DetailView):
     template_name = "planificacion/programacion_detail.html"
     context_object_name = "programacion"
 
@@ -56,7 +57,7 @@ class ProgramacionClaseDetailView(DetailView):
         return context
 
 
-class ProgramacionClaseCreateView(CreateView):
+class ProgramacionClaseCreateView(AccessControlMixin, CreateView):
     form_class = ProgramacionClaseForm
     template_name = "planificacion/programacion_form.html"
 
@@ -69,7 +70,7 @@ class ProgramacionClaseCreateView(CreateView):
         return redirect("planificacion:programaciones_detalle", id_programacion=programacion.pk)
 
 
-class ProgramacionClaseUpdateView(UpdateView):
+class ProgramacionClaseUpdateView(AccessControlMixin, UpdateView):
     form_class = ProgramacionClaseForm
     template_name = "planificacion/programacion_form.html"
 
@@ -88,7 +89,7 @@ class ProgramacionClaseUpdateView(UpdateView):
         return redirect("planificacion:programaciones_detalle", id_programacion=programacion.pk)
 
 
-class ProgramacionClaseDeleteView(DeleteView):
+class ProgramacionClaseDeleteView(AccessControlMixin, DeleteView):
     template_name = "planificacion/programacion_confirm_delete.html"
     success_url = reverse_lazy("planificacion:programaciones_listado")
 

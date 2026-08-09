@@ -8,9 +8,10 @@ from django.views.generic import CreateView, DeleteView, DetailView, ListView, U
 from apps.docencia import selectors, services
 from apps.docencia.forms import InstructorForm, TemaForm
 from apps.docencia.serializers import InstructorDTO, TemaDTO
+from core.mixins import AccessControlMixin
 
 
-class InstructorListView(ListView):
+class InstructorListView(AccessControlMixin, ListView):
     template_name = "docencia/instructor_list.html"
     context_object_name = "instructores"
     paginate_by = 20
@@ -26,7 +27,7 @@ class InstructorListView(ListView):
         return context
 
 
-class InstructorDetailView(DetailView):
+class InstructorDetailView(AccessControlMixin, DetailView):
     template_name = "docencia/instructor_detail.html"
     context_object_name = "instructor"
 
@@ -42,7 +43,7 @@ class InstructorDetailView(DetailView):
         return context
 
 
-class InstructorCreateView(CreateView):
+class InstructorCreateView(AccessControlMixin, CreateView):
     form_class = InstructorForm
     template_name = "docencia/instructor_form.html"
 
@@ -55,7 +56,7 @@ class InstructorCreateView(CreateView):
         return redirect("docencia:detalle", id_instructor=instructor.pk)
 
 
-class InstructorUpdateView(UpdateView):
+class InstructorUpdateView(AccessControlMixin, UpdateView):
     form_class = InstructorForm
     template_name = "docencia/instructor_form.html"
 
@@ -74,7 +75,7 @@ class InstructorUpdateView(UpdateView):
         return redirect("docencia:detalle", id_instructor=instructor.pk)
 
 
-class InstructorDeleteView(DeleteView):
+class InstructorDeleteView(AccessControlMixin, DeleteView):
     template_name = "docencia/instructor_confirm_delete.html"
     success_url = reverse_lazy("docencia:listado")
 
@@ -93,7 +94,7 @@ class InstructorDeleteView(DeleteView):
         return redirect(self.success_url)
 
 
-class TemaListView(ListView):
+class TemaListView(AccessControlMixin, ListView):
     template_name = "docencia/tema_list.html"
     context_object_name = "temas"
     paginate_by = 20
@@ -107,7 +108,7 @@ class TemaListView(ListView):
         return context
 
 
-class TemaCreateView(CreateView):
+class TemaCreateView(AccessControlMixin, CreateView):
     form_class = TemaForm
     template_name = "docencia/tema_form.html"
 
@@ -120,7 +121,7 @@ class TemaCreateView(CreateView):
         return redirect("docencia:temas_listado")
 
 
-class TemaUpdateView(UpdateView):
+class TemaUpdateView(AccessControlMixin, UpdateView):
     form_class = TemaForm
     template_name = "docencia/tema_form.html"
 
@@ -139,7 +140,7 @@ class TemaUpdateView(UpdateView):
         return redirect("docencia:temas_listado")
 
 
-class TemaToggleEstadoView(View):
+class TemaToggleEstadoView(AccessControlMixin, View):
     """
     Alterna activo/inactivo mediante un POST simple sin JS, para que
     quede correctamente preparado como progressive enhancement de cara

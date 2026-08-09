@@ -58,6 +58,15 @@ class Pareja(models.Model):
         db_table = "parejas"
         verbose_name = "Pareja"
         verbose_name_plural = "Parejas"
+        # Resuelve el UnorderedObjectListWarning detectado en el Paso 0
+        # de esta fase (paginar sin orden explícito puede repetir o
+        # saltarse filas entre páginas). Mismo criterio que ya usa
+        # ProgramacionClase (Fase 3): Meta.ordering del modelo, no
+        # order_by() repetido en cada selector que lista parejas. Por
+        # clase primero (agrupa visualmente lo que ya se ve junto en
+        # pareja_por_clase.html) y luego por id_pareja como desempate
+        # estable, que además refleja el orden real de creación.
+        ordering = ["clase_id", "id_pareja"]
 
     def __str__(self):
         return f"Pareja #{self.id_pareja} — Clase {self.clase_id}"

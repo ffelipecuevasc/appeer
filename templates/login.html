@@ -9,9 +9,17 @@
     <!--
   Página SIN nav/footer del proyecto, a propósito: es el mismo criterio
   que trae login_PROTOTIPO.html ("Navigation shell suppressed"). No
-  extiende base.html. Solo visual (Subfase Adenda 7) — sin lógica de
-  autenticación: eso es Fase 8. El <form> ya trae {% csrf_token %}
-  y method="post" listos para cuando exista la vista real.
+  extiende base.html — por eso repite la carga de Tailwind y el
+  tailwind.config en vez de heredarlos.
+
+  Subfase 8.1: dejó de ser una plantilla solo visual. Ahora la sirve
+  AppEERLoginView (core/auth_views.py) sobre AuthenticationForm de
+  Django. El marcado del formulario NO se rehízo: los name="username"
+  y name="password" que ya traía la Adenda 7 son exactamente los que
+  AuthenticationForm espera, así que bastó conectarlo y agregar tres
+  cosas que un formulario real necesita y una maqueta no: errores de
+  credenciales, preservación de lo escrito al fallar, y el campo
+  oculto `next`.
 -->
     <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -30,6 +38,13 @@
                             muted: '#A0AEC0',
                             border: '#E2E8F0',
                         },
+                    },
+                    // Necesario porque esta página reutiliza
+                    // partials/alerts.html, que usa shadow-card. En
+                    // base.html ya existe; acá había que replicarlo,
+                    // al no heredar de él.
+                    boxShadow: {
+                        card: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
                     },
                 },
             },
@@ -68,12 +83,39 @@
             <p class="text-sm text-brand-muted">Ingresa tus credenciales para continuar.</p>
         </div>
 
+        <!-- Mensajes del servidor (ej. "Cerraste sesión correctamente"
+             al volver acá tras el logout). Se reutiliza el MISMO
+             partial de la Subfase 5.2 que usa base.html en el resto
+             del sitio, en vez de escribir un componente de alertas
+             paralelo solo para esta página. -->
+        {% include "partials/alerts.html" %}
+
+        <!-- Errores de autenticación. AuthenticationForm los expone
+             como non_field_errors (credenciales inválidas o cuenta
+             inactiva), no asociados a un campo puntual. -->
+        {% if form.non_field_errors %}
+            <div class="mb-6 px-5 py-3.5 rounded-2xl bg-red-50 text-red-800 text-sm" role="alert">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
         <form method="post" action="" class="space-y-5">
             {% csrf_token %}
+
+            <!-- Preserva el destino original cuando el control de
+                 acceso de la Subfase 8.2 redirija hacia acá: tras
+                 autenticarse, el usuario vuelve a la página que
+                 realmente quería abrir, no al inicio genérico. -->
+            {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
 
             <div>
                 <label for="username" class="block text-xs font-medium text-brand-dark mb-1.5">Usuario</label>
                 <input type="text" id="username" name="username" autocomplete="username"
+                       value="{{ form.username.value|default:'' }}" required autofocus
                        class="w-full px-4 py-2.5 rounded-xl border border-brand-border bg-white text-brand-text text-sm
                       focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent transition-shadow">
             </div>
@@ -81,17 +123,28 @@
             <div>
                 <label for="password" class="block text-xs font-medium text-brand-dark mb-1.5">Contraseña</label>
                 <input type="password" id="password" name="password" autocomplete="current-password"
+                       required
                        class="w-full px-4 py-2.5 rounded-xl border border-brand-border bg-white text-brand-text text-sm
                       focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent transition-shadow">
             </div>
 
-            <div class="flex items-center justify-between pt-1">
+            <div class="pt-1">
                 <label class="flex items-center gap-2 cursor-pointer">
+                    <!-- Lo lee AppEERLoginView.form_valid() para decidir la
+                         duración de la sesión. request.POST se consulta acá
+                         solo para no perder la marca del usuario cuando el
+                         intento anterior falló: "remember" no es un campo de
+                         AuthenticationForm, así que el form no lo repuebla. -->
                     <input type="checkbox" id="remember" name="remember"
+                           {% if request.POST.remember %}checked{% endif %}
                            class="h-4 w-4 rounded border-brand-border text-brand-accent focus:ring-brand-accent">
                     <span class="text-sm text-brand-muted">Recordarme</span>
                 </label>
-                <a href="#" class="text-sm text-brand-accent hover:underline">¿Olvidaste tu contraseña?</a>
+                <!-- Subfase 8.2: se retiró a propósito el enlace de
+                     recuperación de contraseña que traía la Adenda 7 —
+                     apuntaba a un destino muerto, y ese flujo no está en
+                     el alcance del Plan de Trabajo para la Fase 8. Se
+                     reincorpora si se abre esa subfase. -->
             </div>
 
             <button type="submit"

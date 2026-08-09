@@ -12,10 +12,10 @@ from django.views.generic import CreateView, DeleteView, DetailView, ListView, U
 from apps.estudiantes import selectors, services
 from apps.estudiantes.forms import EstudianteForm
 from apps.estudiantes.serializers import EstudianteDTO
-from core.mixins import AjaxRequestMixin
+from core.mixins import AccessControlMixin
 
 
-class EstudianteListView(AjaxRequestMixin, ListView):
+class EstudianteListView(AccessControlMixin, ListView):
     """
     Subfase 6.2: expone búsqueda por ?q= (funciona con GET normal,
     sin JS — mejora progresiva) y, cuando la petición viene marcada
@@ -46,7 +46,7 @@ class EstudianteListView(AjaxRequestMixin, ListView):
         return [self.template_name]
 
 
-class EstudianteDetailView(DetailView):
+class EstudianteDetailView(AccessControlMixin, DetailView):
     template_name = "estudiantes/estudiante_detail.html"
     context_object_name = "estudiante"
 
@@ -62,7 +62,7 @@ class EstudianteDetailView(DetailView):
         return context
 
 
-class EstudianteCreateView(CreateView):
+class EstudianteCreateView(AccessControlMixin, CreateView):
     form_class = EstudianteForm
     template_name = "estudiantes/estudiante_form.html"
 
@@ -75,7 +75,7 @@ class EstudianteCreateView(CreateView):
         return redirect("estudiantes:detalle", id_estudiante=estudiante.pk)
 
 
-class EstudianteUpdateView(UpdateView):
+class EstudianteUpdateView(AccessControlMixin, UpdateView):
     form_class = EstudianteForm
     template_name = "estudiantes/estudiante_form.html"
 
@@ -94,7 +94,7 @@ class EstudianteUpdateView(UpdateView):
         return redirect("estudiantes:detalle", id_estudiante=estudiante.pk)
 
 
-class EstudianteDeleteView(DeleteView):
+class EstudianteDeleteView(AccessControlMixin, DeleteView):
     template_name = "estudiantes/estudiante_confirm_delete.html"
     success_url = reverse_lazy("estudiantes:listado")
 

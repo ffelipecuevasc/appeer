@@ -5,6 +5,12 @@
   Los 5 items de primer nivel usan <details>/<summary> (HTML5 puro,
   cero JavaScript) para el submenú desplegable. El único JS de esta
   fase es el imprescindible para abrir/cerrar el menú móvil.
+
+  Subfase 8.1: se agrega el bloque de sesión (escritorio y móvil).
+  El cierre de sesión es un <form method="post">, no un enlace: /logout/
+  solo acepta POST (ver core/auth_views.py). Aunque base.html ya emite
+  un {% csrf_token %} global para la cookie, este formulario necesita
+  igualmente el suyo propio — el token debe viajar en el cuerpo del POST.
 -->
 <nav aria-label="Navegación principal" class="flex items-center justify-between mb-8">
     <!-- Logo -->
@@ -122,6 +128,45 @@
         </details>
     </div>
 
+    <!-- Sesión (escritorio) -->
+    <div class="hidden lg:flex items-center gap-2">
+        {% if user.is_authenticated %}
+            <span class="glass-pill px-5 py-2 rounded-full flex items-center gap-2 text-sm font-medium text-brand-dark">
+                <!-- account-login (Material Symbols Light, Iconify): avatar
+                     genérico junto al nombre de usuario. -->
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill="currentColor"
+                          d="M6.196 17.485q1.275-.918 2.706-1.451Q10.332 15.5 12 15.5t3.098.534t2.706 1.45q.99-1.025 1.593-2.42Q20 13.667 20 12q0-3.325-2.337-5.663T12 4T6.337 6.338T4 12q0 1.667.603 3.064q.603 1.396 1.593 2.42M12 12.5q-1.263 0-2.132-.868T9 9.5t.868-2.132T12 6.5t2.132.868T15 9.5t-.868 2.132T12 12.5m0 8.5q-1.883 0-3.525-.701t-2.858-1.916t-1.916-2.858T3 12t.701-3.525t1.916-2.858q1.216-1.215 2.858-1.916T12 3t3.525.701t2.858 1.916t1.916 2.858T21 12t-.701 3.525t-1.916 2.858q-1.216 1.215-2.858 1.916T12 21"/>
+                </svg>
+                {{ user.get_username }}
+            </span>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit"
+                        class="flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium bg-white text-brand-dark border border-brand-border shadow-sm hover:bg-gray-50 transition-colors">
+                    <!-- logout (Material Symbols Light, Iconify): puerta con
+                         flecha saliendo. -->
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path fill="currentColor"
+                              d="M5.616 20q-.691 0-1.153-.462T4 18.384V5.616q0-.691.463-1.153T5.616 4h6.403v1H5.616q-.231 0-.424.192T5 5.616v12.769q0 .23.192.423t.423.192h6.404v1zm10.846-4.461l-.702-.72l2.319-2.319H9.192v-1h8.887l-2.32-2.32l.702-.718L20 12z"/>
+                    </svg>
+                    Cerrar sesión
+                </button>
+            </form>
+        {% else %}
+            <a href="{% url 'login' %}"
+               class="flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium bg-brand-dark text-white hover:opacity-90 transition-opacity">
+                <!-- login (Material Symbols Light, Iconify): puerta con
+                     flecha entrando. -->
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill="currentColor"
+                          d="M11.98 20v-1h6.405q.23 0 .423-.192t.192-.424V5.616q0-.231-.192-.424T18.384 5h-6.403V4h6.404q.69 0 1.152.463T20 5.616v12.769q0 .69-.463 1.153T18.385 20zm-.71-4.461l-.703-.72l2.32-2.319H4.019v-1h8.868l-2.32-2.32l.702-.718L14.808 12z"/>
+                </svg>
+                Iniciar sesión
+            </a>
+        {% endif %}
+    </div>
+
     <!-- Botón menú móvil -->
     <button
             type="button"
@@ -215,6 +260,40 @@
         <a href="{% url 'academico:clases_listado' %}"
            class="block px-4 py-2 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Ver por
             clase / crear nueva</a>
+    </div>
+    <!-- Sesión (móvil) -->
+    <div class="py-2">
+        {% if user.is_authenticated %}
+            <div class="flex items-center gap-2 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-brand-muted">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill="currentColor"
+                          d="M6.196 17.485q1.275-.918 2.706-1.451Q10.332 15.5 12 15.5t3.098.534t2.706 1.45q.99-1.025 1.593-2.42Q20 13.667 20 12q0-3.325-2.337-5.663T12 4T6.337 6.338T4 12q0 1.667.603 3.064q.603 1.396 1.593 2.42M12 12.5q-1.263 0-2.132-.868T9 9.5t.868-2.132T12 6.5t2.132.868T15 9.5t-.868 2.132T12 12.5m0 8.5q-1.883 0-3.525-.701t-2.858-1.916t-1.916-2.858T3 12t.701-3.525t1.916-2.858q1.216-1.215 2.858-1.916T12 3t3.525.701t2.858 1.916t1.916 2.858T21 12t-.701 3.525t-1.916 2.858q-1.216 1.215-2.858 1.916T12 21"/>
+                </svg>
+                <span>Sesión de {{ user.get_username }}</span>
+            </div>
+            <form method="post" action="{% url 'logout' %}" class="px-4 py-2">
+                {% csrf_token %}
+                <button type="submit"
+                        class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium bg-white text-brand-dark border border-brand-border hover:bg-gray-50 transition-colors">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path fill="currentColor"
+                              d="M5.616 20q-.691 0-1.153-.462T4 18.384V5.616q0-.691.463-1.153T5.616 4h6.403v1H5.616q-.231 0-.424.192T5 5.616v12.769q0 .23.192.423t.423.192h6.404v1zm10.846-4.461l-.702-.72l2.319-2.319H9.192v-1h8.887l-2.32-2.32l.702-.718L20 12z"/>
+                    </svg>
+                    Cerrar sesión
+                </button>
+            </form>
+        {% else %}
+            <div class="px-4 py-2">
+                <a href="{% url 'login' %}"
+                   class="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-medium bg-brand-dark text-white hover:opacity-90 transition-opacity">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path fill="currentColor"
+                              d="M11.98 20v-1h6.405q.23 0 .423-.192t.192-.424V5.616q0-.231-.192-.424T18.384 5h-6.403V4h6.404q.69 0 1.152.463T20 5.616v12.769q0 .69-.463 1.153T18.385 20zm-.71-4.461l-.703-.72l2.32-2.319H4.019v-1h8.868l-2.32-2.32l.702-.718L14.808 12z"/>
+                    </svg>
+                    Iniciar sesión
+                </a>
+            </div>
+        {% endif %}
     </div>
 </div>
 

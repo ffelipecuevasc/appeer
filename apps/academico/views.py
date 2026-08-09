@@ -12,9 +12,10 @@ from django.views.generic import CreateView, DeleteView, DetailView, ListView, U
 from apps.academico import selectors, services
 from apps.academico.forms import ClaseForm, EdicionEscuelaForm, InscripcionEstudianteForm
 from apps.academico.serializers import ClaseDTO, EdicionEscuelaDTO, InscripcionEstudianteDTO
+from core.mixins import AccessControlMixin
 
 
-class EdicionEscuelaListView(ListView):
+class EdicionEscuelaListView(AccessControlMixin, ListView):
     template_name = "academico/edicion_list.html"
     context_object_name = "ediciones"
     paginate_by = 20
@@ -28,7 +29,7 @@ class EdicionEscuelaListView(ListView):
         return context
 
 
-class EdicionEscuelaDetailView(DetailView):
+class EdicionEscuelaDetailView(AccessControlMixin, DetailView):
     template_name = "academico/edicion_detail.html"
     context_object_name = "edicion"
 
@@ -48,7 +49,7 @@ class EdicionEscuelaDetailView(DetailView):
         return context
 
 
-class EdicionEscuelaCreateView(CreateView):
+class EdicionEscuelaCreateView(AccessControlMixin, CreateView):
     form_class = EdicionEscuelaForm
     template_name = "academico/edicion_form.html"
 
@@ -61,7 +62,7 @@ class EdicionEscuelaCreateView(CreateView):
         return redirect("academico:ediciones_detalle", id_edicion=edicion.pk)
 
 
-class EdicionEscuelaUpdateView(UpdateView):
+class EdicionEscuelaUpdateView(AccessControlMixin, UpdateView):
     form_class = EdicionEscuelaForm
     template_name = "academico/edicion_form.html"
 
@@ -80,7 +81,7 @@ class EdicionEscuelaUpdateView(UpdateView):
         return redirect("academico:ediciones_detalle", id_edicion=edicion.pk)
 
 
-class EdicionEscuelaDeleteView(DeleteView):
+class EdicionEscuelaDeleteView(AccessControlMixin, DeleteView):
     template_name = "academico/edicion_confirm_delete.html"
     success_url = reverse_lazy("academico:ediciones_listado")
 
@@ -99,7 +100,7 @@ class EdicionEscuelaDeleteView(DeleteView):
         return redirect(self.success_url)
 
 
-class ClaseListView(ListView):
+class ClaseListView(AccessControlMixin, ListView):
     template_name = "academico/clase_list.html"
     context_object_name = "clases"
     paginate_by = 20
@@ -113,7 +114,7 @@ class ClaseListView(ListView):
         return context
 
 
-class ClaseDetailView(DetailView):
+class ClaseDetailView(AccessControlMixin, DetailView):
     template_name = "academico/clase_detail.html"
     context_object_name = "clase"
 
@@ -129,7 +130,7 @@ class ClaseDetailView(DetailView):
         return context
 
 
-class ClaseCreateView(CreateView):
+class ClaseCreateView(AccessControlMixin, CreateView):
     form_class = ClaseForm
     template_name = "academico/clase_form.html"
 
@@ -142,7 +143,7 @@ class ClaseCreateView(CreateView):
         return redirect("academico:clases_detalle", id_clase=clase.pk)
 
 
-class ClaseUpdateView(UpdateView):
+class ClaseUpdateView(AccessControlMixin, UpdateView):
     form_class = ClaseForm
     template_name = "academico/clase_form.html"
 
@@ -161,7 +162,7 @@ class ClaseUpdateView(UpdateView):
         return redirect("academico:clases_detalle", id_clase=clase.pk)
 
 
-class ClaseDeleteView(DeleteView):
+class ClaseDeleteView(AccessControlMixin, DeleteView):
     template_name = "academico/clase_confirm_delete.html"
     success_url = reverse_lazy("academico:clases_listado")
 
@@ -180,7 +181,7 @@ class ClaseDeleteView(DeleteView):
         return redirect(self.success_url)
 
 
-class InscripcionEstudianteCreateView(CreateView):
+class InscripcionEstudianteCreateView(AccessControlMixin, CreateView):
     """
     Alta de una inscripción, siempre en el contexto de una Edición
     fija tomada de la URL (id_edicion). Decisión registrada en la
@@ -191,6 +192,14 @@ class InscripcionEstudianteCreateView(CreateView):
     template_name = "academico/inscripcion_form.html"
 
     def dispatch(self, request, *args, **kwargs):
+        # Guard de autenticación ANTES de la consulta (Subfase 8.2,
+        # ver AccessControlMixin.bloqueo_si_no_autenticado): esta
+        # vista define su propio dispatch(), así que sin este guard
+        # explícito el chequeo de sesión de AccessControlMixin nunca
+        # correría antes que esta consulta.
+        bloqueo = self.bloqueo_si_no_autenticado(request)
+        if bloqueo is not None:
+            return bloqueo
         self.edicion = selectors.obtener_edicion_por_id(self.kwargs["id_edicion"])
         if self.edicion is None:
             raise Http404("Edición no encontrada.")
@@ -219,7 +228,7 @@ class InscripcionEstudianteCreateView(CreateView):
         return redirect("academico:ediciones_detalle", id_edicion=self.edicion.pk)
 
 
-class InscripcionEstudianteUpdateView(UpdateView):
+class InscripcionEstudianteUpdateView(AccessControlMixin, UpdateView):
     """
     Edición de una inscripción existente. La Edición queda fija (mismo
     motivo que en el alta): solo se puede cambiar el estudiante o la
@@ -258,7 +267,7 @@ class InscripcionEstudianteUpdateView(UpdateView):
         return redirect("academico:ediciones_detalle", id_edicion=self.object.edicion_id)
 
 
-class InscripcionEstudianteDeleteView(DeleteView):
+class InscripcionEstudianteDeleteView(AccessControlMixin, DeleteView):
     template_name = "academico/inscripcion_confirm_delete.html"
 
     def get_object(self, queryset=None):
