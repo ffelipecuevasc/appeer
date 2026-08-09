@@ -1,0 +1,165 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AppEER · Escuela de Capacitación</title>
+
+    <!--
+  Página de bienvenida (Adenda 8). Autocontenida: NO extiende
+  base.html y, por decisión explícita, no lleva barra de navegación
+  ni pie de página — solo la imagen, el logotipo y el botón de
+  entrada. Mismo criterio que login.html, que tampoco los lleva.
+
+  Es la única página pública del proyecto. No muestra ningún dato de
+  negocio: si alguna vez se le agrega uno, deja de poder ser pública
+  (ver AppEER/views.py::bienvenida).
+
+  El tailwind.config vuelve a repetirse acá — tercera copia, junto a
+  base.html y login.html. Queda registrado como pendiente documental
+  de la Adenda 8: extraerlo a un parcial compartido es la solución,
+  pero se decidió no hacerlo en este alcance.
+-->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {sans: ['Inter', 'sans-serif']},
+                    colors: {
+                        brand: {
+                            bg: '#E2F0FD',
+                            card: '#FFFFFF',
+                            dark: '#1C3861',
+                            accent: '#267AE9',
+                            text: '#2D3748',
+                            muted: '#A0AEC0',
+                            border: '#E2E8F0',
+                        },
+                    },
+                },
+            },
+        };
+    </script>
+
+    <style>
+        /* Entrada suave del bloque central. Se define acá y no en
+           static/css/styles.css porque es específico de esta única
+           página, no un patrón reutilizable — el criterio de uso que
+           fijó la Subfase 5.5 para esa hoja. */
+        @keyframes appeer-surgir {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .appeer-surgir {
+            animation: appeer-surgir 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        /* Salida al pulsar el botón (la aplica splash.js). */
+        .appeer-saliendo {
+            opacity: 0;
+            transition: opacity 0.35s ease;
+        }
+
+        /* Quien pidió menos movimiento no recibe ninguno: ni la
+           entrada ni la salida. splash.js respeta la misma preferencia
+           y navega de inmediato. */
+        @media (prefers-reduced-motion: reduce) {
+            .appeer-surgir,
+            .appeer-saliendo {
+                animation: none;
+                transition: none;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased bg-brand-dark">
+
+<main id="appeer-bienvenida" class="relative min-h-screen w-full overflow-hidden">
+
+    <!-- Fotografía de fondo, a todo ancho y alto.
+         alt="" a propósito: es una imagen ambiental, y el sentido de
+         la página ya está en el logotipo y el botón. Anunciarla a un
+         lector de pantalla solo agregaría ruido antes de la única
+         acción real que hay acá.
+         Se sirve desde static/ y no desde un CDN externo porque
+         SecurityHeadersMiddleware (Fase 7) fija img-src 'self' data:
+         — una URL externa quedaría bloqueada por el CSP. -->
+    <img
+            src="{% static 'img/bienvenida-salon.jpg' %}"
+            srcset="{% static 'img/bienvenida-salon-768.jpg' %} 768w,
+                    {% static 'img/bienvenida-salon.jpg' %} 1280w"
+            sizes="100vw"
+            alt=""
+            fetchpriority="high"
+            decoding="async"
+            class="absolute inset-0 h-full w-full object-cover object-center">
+
+    <!-- Velo de contraste. La fotografía es un atardecer de tonos
+         cálidos y claros; sin este velo el texto blanco perdería
+         legibilidad sobre el cielo. Se usa brand.dark, no un negro
+         plano, para que el degradado pertenezca a la paleta del
+         proyecto en vez de apagarla. -->
+    <div class="absolute inset-0 bg-gradient-to-b from-brand-dark/80 via-brand-dark/45 to-brand-dark/85"
+         aria-hidden="true"></div>
+
+    <!-- Bloque central -->
+    <div class="relative flex min-h-screen flex-col items-center justify-center px-6 py-16 text-center">
+
+        <div class="appeer-surgir">
+            <!-- Logotipo: el MISMO SVG que ya usa partials/header.html
+                 (Material Symbols Light, set oficial del proyecto). No
+                 se introduce un ícono nuevo. -->
+            <svg class="mx-auto h-16 w-16 text-white sm:h-20 sm:w-20" viewBox="0 0 24 24" fill="currentColor"
+                 aria-hidden="true">
+                <path fill="currentColor"
+                      d="M6.366 20q-.986 0-1.676-.69T4 17.635V12q0-.47.176-.9t.507-.763l5.634-5.635q.349-.354.79-.528T12 4q.45 0 .88.17q.431.171.783.532l1.02 1.02l-6.933 6.932v3.596h8.5v-3.596L12.689 9.11l2.702-2.696l3.907 3.922q.329.329.516.76T20 12v5.635q0 .985-.695 1.675q-.696.69-1.69.69z"/>
+            </svg>
+
+            <h1 class="mt-5 text-5xl font-semibold tracking-tight text-white sm:text-6xl">AppEER</h1>
+
+            <p class="mx-auto mt-4 max-w-md text-balance text-sm text-white/75 sm:text-base">
+                Sistema de Gestión Integral de Escuela de Capacitación
+            </p>
+
+            <!-- Un enlace, no un temporizador (Adenda 8, decisión 3):
+                 nadie queda esperando a que la página decida por él.
+                 La etiqueta la resuelve el servidor y dice exactamente
+                 a dónde lleva — "Ir al inicio" con sesión activa,
+                 "Iniciar sesión" sin ella. -->
+            <div class="mt-10">
+                <a
+                        id="appeer-entrar"
+                        href="{{ destino }}"
+                        class="group inline-flex items-center gap-2.5 rounded-full bg-white px-8 py-3.5 text-sm
+                       font-medium text-brand-dark shadow-lg shadow-brand-dark/25 transition
+                       hover:bg-brand-bg hover:shadow-xl focus:outline-none focus-visible:ring-2
+                       focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-dark">
+                    {{ etiqueta_destino }}
+                    <!-- login (Material Symbols Light): puerta con flecha
+                         entrando. El mismo del header. -->
+                    <svg class="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
+                         viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path fill="currentColor"
+                              d="M11.98 20v-1h6.405q.23 0 .423-.192t.192-.424V5.616q0-.231-.192-.424T18.384 5h-6.403V4h6.404q.69 0 1.152.463T20 5.616v12.769q0 .69-.463 1.153T18.385 20zm-.71-4.461l-.703-.72l2.32-2.319H4.019v-1h8.868l-2.32-2.32l.702-.718L14.808 12z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script src="{% static 'js/modules/splash.js' %}" defer></script>
+
+</body>
+</html>

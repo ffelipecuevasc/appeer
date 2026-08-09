@@ -20,14 +20,13 @@ from django.urls import include, path
 from django.views.generic import TemplateView
 
 from AppEER import views
+from core.auth_views import AppEERLoginView, AppEERLogoutView
 
 urlpatterns = [
-    path("", views.inicio, name="inicio"),
-    # TemplateView temporal (Adenda 7): sin lógica de autenticación
-    # todavía. En la Fase 8 se reemplaza este TemplateView por la
-    # vista real de login, en la MISMA ruta y el MISMO name="login" —
-    # nada que dependa de esta URL necesita cambiar después.
-    path("login/", TemplateView.as_view(template_name="login.html"), name="login"),
+    path("", views.bienvenida, name="bienvenida"),
+    path("inicio/", views.inicio, name="inicio"),
+    path("login/", AppEERLoginView.as_view(), name="login"),
+    path("logout/", AppEERLogoutView.as_view(), name="logout"),
     path("admin/", admin.site.urls),
     path("estudiantes/", include("apps.estudiantes.urls")),
     path("docencia/", include("apps.docencia.urls")),
