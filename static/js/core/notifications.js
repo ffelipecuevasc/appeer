@@ -89,4 +89,38 @@
         warning: (msg, options) => show(msg, "warning", options),
         info: (msg, options) => show(msg, "info", options),
     };
+
+    /**
+     * Auto-descarte de mensajes SERVER-RENDERED (ajuste posterior a la
+     * Fase 8). show() ya auto-descarta lo que genera el propio JS
+     * (DEFAULT_TIMEOUT_MS más arriba) — esto es lo mismo, pero para los
+     * mensajes que llegan directo del framework de Django
+     * (django.contrib.messages, vía {% for message in messages %} en
+     * partials/alerts.html), que hasta ahora se quedaban en pantalla
+     * para siempre. Ejemplo real: "Sesión iniciada como X" tras el login.
+     *
+     * Corre UNA vez, al cargar el script (que ya está en <script defer>,
+     * así que el DOM —incluidos los mensajes server-rendered— ya existe).
+     * Toma una foto de los hijos de #appeer-alerts EN ESE MOMENTO nada
+     * más: cualquier notificación que JS agregue después pasa por show()
+     * y gestiona su propio timeout ahí, no acá — no hay doble manejo.
+     */
+    const SERVER_MESSAGE_TIMEOUT_MS = 3000;
+    const FADE_OUT_MS = 300;
+
+    function autoDescartarMensajesDelServidor() {
+        const contenedor = getContainer();
+        if (!contenedor) return;
+
+        Array.from(contenedor.children).forEach(function (el) {
+            setTimeout(function () {
+                el.classList.add("transition-opacity", "duration-300", "opacity-0");
+                setTimeout(function () {
+                    el.remove();
+                }, FADE_OUT_MS);
+            }, SERVER_MESSAGE_TIMEOUT_MS);
+        });
+    }
+
+    autoDescartarMensajesDelServidor();
 })();

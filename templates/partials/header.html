@@ -11,6 +11,16 @@
   solo acepta POST (ver core/auth_views.py). Aunque base.html ya emite
   un {% csrf_token %} global para la cookie, este formulario necesita
   igualmente el suyo propio — el token debe viajar en el cuerpo del POST.
+
+  Ajuste posterior a la Fase 8: en escritorio, el bloque de sesión
+  autenticada (nombre de usuario + botón de cerrar sesión, cada uno
+  con su propio ancho) vivía FUERA del pill de navegación, como su
+  propio widget. Con el <nav> en justify-between, ese widget ancho
+  apretaba el pill de navegación contra el logo. Se reemplazó por un
+  item más del mismo pill ("Cuenta"), mismo patrón <details>/<summary>
+  que los otros 5. En móvil se ajustó la sección equivalente por
+  consistencia, aunque ahí nunca hubo problema de espacio (el menú
+  apila verticalmente).
 -->
 <nav aria-label="Navegación principal" class="flex items-center justify-between mb-8">
     <!-- Logo -->
@@ -75,7 +85,7 @@
                     <path fill="currentColor"
                           d="M12 14.154q-.31 0-.54-.23t-.23-.54t.23-.539t.54-.23t.54.23t.23.54t-.23.539t-.54.23m-4.54-.23q-.23-.23-.23-.54q0-.309.23-.539t.54-.23t.54.23t.23.54t-.23.539t-.54.23t-.54-.23m8.54.23q-.31 0-.54-.23t-.23-.54t.23-.539t.54-.23t.54.23t.23.54t-.23.539t-.54.23M12 18q-.31 0-.54-.23t-.23-.54t.23-.539t.54-.23t.54.23t.23.54t-.23.54T12 18m-4.54-.23q-.23-.23-.23-.54q0-.309.23-.539t.54-.23t.54.23t.23.54t-.23.54Q8.31 18 8 18t-.54-.23M16 18q-.31 0-.54-.23t-.23-.54t.23-.539t.54-.23t.54.23t.23.54t-.23.54T16 18M5.616 21q-.691 0-1.153-.462T4 19.385V6.615q0-.69.463-1.152T5.616 5h1.769V2.77h1.077V5h7.154V2.77h1V5h1.769q.69 0 1.153.463T20 6.616v12.769q0 .69-.462 1.153T18.384 21zm0-1h12.769q.23 0 .423-.192t.192-.424v-8.768H5v8.769q0 .23.192.423t.423.192"/>
                 </svg>
-                <span>Académico</span>
+                <span>Escuela</span>
                 <svg class="w-3.5 h-3.5 nav-caret" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path fill="currentColor" d="M12 14.708L6.692 9.4l.708-.708l4.6 4.6l4.6-4.6l.708.708z"/>
                 </svg>
@@ -126,46 +136,77 @@
                     por clase / crear nueva</a>
             </div>
         </details>
-    </div>
-
-    <!-- Sesión (escritorio) -->
-    <div class="hidden lg:flex items-center gap-2">
         {% if user.is_authenticated %}
-            <span class="glass-pill px-5 py-2 rounded-full flex items-center gap-2 text-sm font-medium text-brand-dark">
-                <!-- account-login (Material Symbols Light, Iconify): avatar
-                     genérico junto al nombre de usuario. -->
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path fill="currentColor"
-                          d="M6.196 17.485q1.275-.918 2.706-1.451Q10.332 15.5 12 15.5t3.098.534t2.706 1.45q.99-1.025 1.593-2.42Q20 13.667 20 12q0-3.325-2.337-5.663T12 4T6.337 6.338T4 12q0 1.667.603 3.064q.603 1.396 1.593 2.42M12 12.5q-1.263 0-2.132-.868T9 9.5t.868-2.132T12 6.5t2.132.868T15 9.5t-.868 2.132T12 12.5m0 8.5q-1.883 0-3.525-.701t-2.858-1.916t-1.916-2.858T3 12t.701-3.525t1.916-2.858q1.216-1.215 2.858-1.916T12 3t3.525.701t2.858 1.916t1.916 2.858T21 12t-.701 3.525t-1.916 2.858q-1.216 1.215-2.858 1.916T12 21"/>
-                </svg>
-                {{ user.get_username }}
-            </span>
-            <form method="post" action="{% url 'logout' %}">
-                {% csrf_token %}
-                <button type="submit"
-                        class="flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium bg-white text-brand-dark border border-brand-border shadow-sm hover:bg-gray-50 transition-colors">
-                    <!-- logout (Material Symbols Light, Iconify): puerta con
-                         flecha saliendo. -->
+            <!-- Ajuste posterior a la Fase 8: antes este bloque vivía FUERA
+                 del pill, como su propio widget (nombre de usuario + botón
+                 de cerrar sesión lado a lado). Con ambos elementos ocupando
+                 su propio ancho, el <nav> con justify-between terminaba
+                 apretando este pill contra el logo en pantallas normales.
+                 Ahora es un item más del mismo pill, igual que los otros 5
+                 — mismo patrón <details>/<summary>, mismo name="nav-dropdown"
+                 (se cierra solo si se abre otro), mismo ancho fijo. -->
+            <details name="nav-dropdown" class="nav-dropdown relative">
+                <summary
+                        class="flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-medium cursor-pointer transition-colors text-brand-dark hover:bg-white/50">
+                    <!-- account-login (Material Symbols Light, Iconify):
+                         el mismo ícono que ya identificaba la cuenta antes
+                         de este ajuste, reutilizado acá como ícono del item. -->
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                         <path fill="currentColor"
-                              d="M5.616 20q-.691 0-1.153-.462T4 18.384V5.616q0-.691.463-1.153T5.616 4h6.403v1H5.616q-.231 0-.424.192T5 5.616v12.769q0 .23.192.423t.423.192h6.404v1zm10.846-4.461l-.702-.72l2.319-2.319H9.192v-1h8.887l-2.32-2.32l.702-.718L20 12z"/>
+                              d="M6.196 17.485q1.275-.918 2.706-1.451Q10.332 15.5 12 15.5t3.098.534t2.706 1.45q.99-1.025 1.593-2.42Q20 13.667 20 12q0-3.325-2.337-5.663T12 4T6.337 6.338T4 12q0 1.667.603 3.064q.603 1.396 1.593 2.42M12 12.5q-1.263 0-2.132-.868T9 9.5t.868-2.132T12 6.5t2.132.868T15 9.5t-.868 2.132T12 12.5m0 8.5q-1.883 0-3.525-.701t-2.858-1.916t-1.916-2.858T3 12t.701-3.525t1.916-2.858q1.216-1.215 2.858-1.916T12 3t3.525.701t2.858 1.916t1.916 2.858T21 12t-.701 3.525t-1.916 2.858q-1.216 1.215-2.858 1.916T12 21"/>
                     </svg>
-                    Cerrar sesión
-                </button>
-            </form>
-        {% else %}
-            <a href="{% url 'login' %}"
-               class="flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium bg-brand-dark text-white hover:opacity-90 transition-opacity">
-                <!-- login (Material Symbols Light, Iconify): puerta con
-                     flecha entrando. -->
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path fill="currentColor"
-                          d="M11.98 20v-1h6.405q.23 0 .423-.192t.192-.424V5.616q0-.231-.192-.424T18.384 5h-6.403V4h6.404q.69 0 1.152.463T20 5.616v12.769q0 .69-.463 1.153T18.385 20zm-.71-4.461l-.703-.72l2.32-2.319H4.019v-1h8.868l-2.32-2.32l.702-.718L14.808 12z"/>
-                </svg>
-                Iniciar sesión
-            </a>
+                    <span>Cuenta</span>
+                    <svg class="w-3.5 h-3.5 nav-caret" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path fill="currentColor" d="M12 14.708L6.692 9.4l.708-.708l4.6 4.6l4.6-4.6l.708.708z"/>
+                    </svg>
+                </summary>
+                <div class="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-card border border-brand-border p-2 z-30">
+                    <!-- Opción 1: solo informativa, deliberadamente un <div>
+                         y no un <a>/<button> — no navega a ningún lado ni
+                         entra en el orden de tabulación. -->
+                    <div class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-brand-muted">
+                        <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path fill="currentColor"
+                                  d="M6.196 17.485q1.275-.918 2.706-1.451Q10.332 15.5 12 15.5t3.098.534t2.706 1.45q.99-1.025 1.593-2.42Q20 13.667 20 12q0-3.325-2.337-5.663T12 4T6.337 6.338T4 12q0 1.667.603 3.064q.603 1.396 1.593 2.42M12 12.5q-1.263 0-2.132-.868T9 9.5t.868-2.132T12 6.5t2.132.868T15 9.5t-.868 2.132T12 12.5m0 8.5q-1.883 0-3.525-.701t-2.858-1.916t-1.916-2.858T3 12t.701-3.525t1.916-2.858q1.216-1.215 2.858-1.916T12 3t3.525.701t2.858 1.916t1.916 2.858T21 12t-.701 3.525t-1.916 2.858q-1.216 1.215-2.858 1.916T12 21"/>
+                        </svg>
+                        <span class="truncate">{{ user.get_username }}</span>
+                    </div>
+                    <div class="my-1 border-t border-dashed border-brand-border" aria-hidden="true"></div>
+                    <!-- Opción 2: la única acción real del dropdown. -->
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors text-left">
+                            <!-- logout (Material Symbols Light, Iconify). -->
+                            <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor"
+                                 aria-hidden="true">
+                                <path fill="currentColor"
+                                      d="M5.616 20q-.691 0-1.153-.462T4 18.384V5.616q0-.691.463-1.153T5.616 4h6.403v1H5.616q-.231 0-.424.192T5 5.616v12.769q0 .23.192.423t.423.192h6.404v1zm10.846-4.461l-.702-.72l2.319-2.319H9.192v-1h8.887l-2.32-2.32l.702-.718L20 12z"/>
+                            </svg>
+                            Cerrar sesión
+                        </button>
+                    </form>
+                </div>
+            </details>
         {% endif %}
     </div>
+
+    {% if not user.is_authenticated %}
+        <!-- Acceso (escritorio) — caso anónimo únicamente. La rama
+             autenticada se movió adentro del pill de arriba (ver el
+             dropdown "Cuenta"); acá ya no queda nada que competir por
+             espacio con el logo. -->
+        <a href="{% url 'login' %}"
+           class="hidden lg:flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium bg-brand-dark text-white hover:opacity-90 transition-opacity">
+            <!-- login (Material Symbols Light, Iconify): puerta con
+                 flecha entrando. -->
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path fill="currentColor"
+                      d="M11.98 20v-1h6.405q.23 0 .423-.192t.192-.424V5.616q0-.231-.192-.424T18.384 5h-6.403V4h6.404q.69 0 1.152.463T20 5.616v12.769q0 .69-.463 1.153T18.385 20zm-.71-4.461l-.703-.72l2.32-2.319H4.019v-1h8.868l-2.32-2.32l.702-.718L14.808 12z"/>
+            </svg>
+            Iniciar sesión
+        </a>
+    {% endif %}
 
     <!-- Botón menú móvil -->
     <button
@@ -227,7 +268,7 @@
                 <path fill="currentColor"
                       d="M12 14.154q-.31 0-.54-.23t-.23-.54t.23-.539t.54-.23t.54.23t.23.54t-.23.539t-.54.23m-4.54-.23q-.23-.23-.23-.54q0-.309.23-.539t.54-.23t.54.23t.23.54t-.23.539t-.54.23t-.54-.23m8.54.23q-.31 0-.54-.23t-.23-.54t.23-.539t.54-.23t.54.23t.23.54t-.23.539t-.54.23M12 18q-.31 0-.54-.23t-.23-.54t.23-.539t.54-.23t.54.23t.23.54t-.23.54T12 18m-4.54-.23q-.23-.23-.23-.54q0-.309.23-.539t.54-.23t.54.23t.23.54t-.23.54Q8.31 18 8 18t-.54-.23M16 18q-.31 0-.54-.23t-.23-.54t.23-.539t.54-.23t.54.23t.23.54t-.23.54T16 18M5.616 21q-.691 0-1.153-.462T4 19.385V6.615q0-.69.463-1.152T5.616 5h1.769V2.77h1.077V5h7.154V2.77h1V5h1.769q.69 0 1.153.463T20 6.616v12.769q0 .69-.462 1.153T18.384 21zm0-1h12.769q.23 0 .423-.192t.192-.424v-8.768H5v8.769q0 .23.192.423t.423.192"/>
             </svg>
-            <span>Académico</span>
+            <span>Escuela</span>
         </div>
         <a href="{% url 'academico:ediciones_listado' %}"
            class="block px-4 py-2 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Ediciones</a>
@@ -261,7 +302,7 @@
            class="block px-4 py-2 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Ver por
             clase / crear nueva</a>
     </div>
-    <!-- Sesión (móvil) -->
+    <!-- Cuenta (móvil) -->
     <div class="py-2">
         {% if user.is_authenticated %}
             <div class="flex items-center gap-2 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-brand-muted">
@@ -269,8 +310,18 @@
                     <path fill="currentColor"
                           d="M6.196 17.485q1.275-.918 2.706-1.451Q10.332 15.5 12 15.5t3.098.534t2.706 1.45q.99-1.025 1.593-2.42Q20 13.667 20 12q0-3.325-2.337-5.663T12 4T6.337 6.338T4 12q0 1.667.603 3.064q.603 1.396 1.593 2.42M12 12.5q-1.263 0-2.132-.868T9 9.5t.868-2.132T12 6.5t2.132.868T15 9.5t-.868 2.132T12 12.5m0 8.5q-1.883 0-3.525-.701t-2.858-1.916t-1.916-2.858T3 12t.701-3.525t1.916-2.858q1.216-1.215 2.858-1.916T12 3t3.525.701t2.858 1.916t1.916 2.858T21 12t-.701 3.525t-1.916 2.858q-1.216 1.215-2.858 1.916T12 21"/>
                 </svg>
-                <span>Sesión de {{ user.get_username }}</span>
+                <span>Cuenta</span>
             </div>
+            <!-- Opción 1: solo informativa, mismo criterio que en escritorio
+                 — un <div>, no un enlace. -->
+            <div class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm text-brand-text">
+                <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill="currentColor"
+                          d="M6.196 17.485q1.275-.918 2.706-1.451Q10.332 15.5 12 15.5t3.098.534t2.706 1.45q.99-1.025 1.593-2.42Q20 13.667 20 12q0-3.325-2.337-5.663T12 4T6.337 6.338T4 12q0 1.667.603 3.064q.603 1.396 1.593 2.42M12 12.5q-1.263 0-2.132-.868T9 9.5t.868-2.132T12 6.5t2.132.868T15 9.5t-.868 2.132T12 12.5m0 8.5q-1.883 0-3.525-.701t-2.858-1.916t-1.916-2.858T3 12t.701-3.525t1.916-2.858q1.216-1.215 2.858-1.916T12 3t3.525.701t2.858 1.916t1.916 2.858T21 12t-.701 3.525t-1.916 2.858q-1.216 1.215-2.858 1.916T12 21"/>
+                </svg>
+                <span class="truncate">{{ user.get_username }}</span>
+            </div>
+            <!-- Opción 2: la acción real. -->
             <form method="post" action="{% url 'logout' %}" class="px-4 py-2">
                 {% csrf_token %}
                 <button type="submit"
