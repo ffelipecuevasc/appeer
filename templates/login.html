@@ -53,25 +53,8 @@
 </head>
 <body class="min-h-screen flex bg-brand-bg font-sans text-brand-text antialiased">
 
-<!-- Panel izquierdo (60%): marca sobre la fotografía del Salón,
-     deliberadamente MUCHO más atenuada que en appeer.html — allá la
-     foto es la protagonista; acá es solo textura y no debe competir
-     con la legibilidad del titular. -->
+<!-- Panel izquierdo (60%): marca, sin foto externa -->
 <div class="hidden lg:flex w-3/5 relative overflow-hidden bg-gradient-to-br from-brand-dark to-brand-accent p-12 flex-col justify-between">
-    <!-- Primer hijo del contenedor a propósito: así queda por DEBAJO
-         de todo lo demás. El gradiente sigue siendo el fondo real; la
-         foto solo lo matiza. Las tres clases que gobiernan el efecto:
-         · opacity-15 → nivel de atenuación (súbelo o bájalo a gusto:
-           opacity-10 casi no se ve, opacity-25 ya es notoria)
-         · blur-[2px]  → desenfoque suave, para que ningún detalle
-           compita con el texto
-         · scale-105   → evita el borde translúcido que el desenfoque
-           genera en los cantos de la imagen
-         alt="" + aria-hidden porque es puramente decorativa. -->
-    <img src="{% static 'img/bienvenida-salon.jpg' %}"
-         alt=""
-         aria-hidden="true"
-         class="absolute inset-0 h-full w-full object-cover opacity-15 blur-[2px] scale-105">
     <div class="absolute -right-16 -bottom-16 opacity-10 text-white">
         <svg class="w-72 h-72" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path fill="currentColor"
@@ -80,18 +63,9 @@
     </div>
     <span class="relative text-xl font-semibold text-white">AppEER</span>
     <div class="relative">
-        <!-- Jerarquía deliberada: el H3 es el antetítulo — liviano
-             (font-light), pequeño y espaciado, en blanco atenuado. El
-             H1 carga todo el peso visual (font-bold) y el contraste
-             pleno. El contraste entre ambos es lo que hace elegante
-             el conjunto, no el tamaño por sí solo. -->
-        <h3 class="text-sm font-light uppercase tracking-[0.2em] text-white/70 mb-2">
-            Aplicación de Administración
-        </h3>
-        <h1 class="text-4xl font-bold text-white mb-3 max-w-md leading-tight">
-            Escuela de Evangelizadores del Reino
-        </h1>
-        <p class="text-white/80 max-w-sm">Estudiantes, docencia, ediciones, programación y asignaciones, todo en un
+        <h1 class="text-4xl font-medium text-white mb-3 max-w-md">Sistema de Gestión Integral de Escuela de
+            Capacitación</h1>
+        <p class="text-white/80 max-w-sm">Estudiantes, escuela, docencia, planificación y asignaciones, todo en un
             mismo lugar.</p>
     </div>
 </div>

@@ -17,12 +17,25 @@
                 {{ form.nombre }}
                 {% for error in form.nombre.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
             </div>
-            <div>
-                <label for="{{ form.anio.id_for_label }}"
-                       class="block text-xs font-medium text-brand-dark mb-1.5">Año</label>
-                {{ form.anio }}
-                {% for error in form.anio.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="{{ form.fecha_inicio.id_for_label }}"
+                           class="block text-xs font-medium text-brand-dark mb-1.5">Fecha de inicio</label>
+                    {{ form.fecha_inicio }}
+                    {% for error in form.fecha_inicio.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                </div>
+                <div>
+                    <label for="{{ form.fecha_fin.id_for_label }}"
+                           class="block text-xs font-medium text-brand-dark mb-1.5">Fecha de término</label>
+                    {{ form.fecha_fin }}
+                    {% for error in form.fecha_fin.errors %}
+                        <p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                </div>
             </div>
+            <!-- Errores de rango de fechas (Clase.clean(): fecha_fin debe
+                 ser posterior a fecha_inicio) llegan como non_field_errors,
+                 ya cubiertos arriba. -->
             <div class="flex justify-end gap-3 pt-2">
                 <a href="{% url 'academico:clases_listado' %}"
                    class="px-5 py-2.5 rounded-full border border-brand-border text-sm font-medium text-brand-dark hover:bg-brand-bg/60 transition-colors">Cancelar</a>

@@ -91,10 +91,15 @@
                 </svg>
             </summary>
             <div class="absolute left-0 top-full mt-2 w-60 bg-white rounded-2xl shadow-card border border-brand-border p-2 z-30">
-                <a href="{% url 'academico:ediciones_listado' %}"
-                   class="block px-4 py-2.5 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Ediciones</a>
+                <!-- Fase 11 (Adenda 9): "Ediciones" desapareció junto con
+                     EdicionEscuela. Un solo destino real ahora, igual que
+                     Planificación (ver su dropdown, dos ítems abajo). -->
                 <a href="{% url 'academico:clases_listado' %}"
-                   class="block px-4 py-2.5 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Clases</a>
+                   class="block px-4 py-2.5 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Listado
+                    de clases</a>
+                <a href="{% url 'academico:clases_crear' %}"
+                   class="block px-4 py-2.5 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">+
+                    Nueva clase</a>
             </div>
         </details>
         <details name="nav-dropdown" class="nav-dropdown relative">
@@ -270,10 +275,12 @@
             </svg>
             <span>Escuela</span>
         </div>
-        <a href="{% url 'academico:ediciones_listado' %}"
-           class="block px-4 py-2 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Ediciones</a>
         <a href="{% url 'academico:clases_listado' %}"
-           class="block px-4 py-2 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Clases</a>
+           class="block px-4 py-2 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Listado de
+            clases</a>
+        <a href="{% url 'academico:clases_crear' %}"
+           class="block px-4 py-2 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">+ Nueva
+            clase</a>
     </div>
     <div class="py-2">
         <div class="flex items-center gap-2 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide {% if request.resolver_match.app_name == 'planificacion' %}text-brand-accent{% else %}text-brand-muted{% endif %}">

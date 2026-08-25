@@ -23,31 +23,39 @@ def _validar_estudiantes_distintos(*, estudiante_1, estudiante_2):
 def _validar_coherencia_con_programacion(*, clase, estudiante_1, estudiante_2, programacion):
     """
     Si se indicó una programación, ambos estudiantes deben estar
-    inscritos (InscripcionEstudiante) en esa clase, dentro de la
-    edición a la que pertenece la programación. Decisión registrada
-    explícitamente antes de escribir este Service: ProgramacionClase
-    no tiene FK directa hacia Clase, así que "coherencia" se resuelve
-    por la vía real que ya conecta ambas entidades en el proyecto —
-    InscripcionEstudiante (Fase 2).
+    inscritos (InscripcionEstudiante) en esa clase.
+
+    Fase 11 (Adenda 9): con ProgramacionClase.clase como FK directa
+    hacia Clase, la validación se simplifica a UNA condición en vez de
+    dos — antes había que cruzar clase + edición de la programación
+    por separado, porque ProgramacionClase no conocía la clase
+    directamente. Se aprovecha para agregar una verificación de
+    sanidad que antes no se podía hacer: que la programación indicada
+    efectivamente pertenezca a la clase de la pareja, no a otra.
     """
     if programacion is None:
         return
 
-    inscritos_en_clase_y_edicion = set(
+    if programacion.clase_id != clase.pk:
+        raise ValidationError(
+            "La programación indicada no pertenece a la clase seleccionada."
+        )
+
+    inscritos_en_clase = set(
         InscripcionEstudiante.objects
-        .filter(clase=clase, edicion_id=programacion.edicion_id)
+        .filter(clase=clase)
         .values_list("estudiante_id", flat=True)
     )
 
     faltantes = [
         estudiante for estudiante in (estudiante_1, estudiante_2)
-        if estudiante.pk not in inscritos_en_clase_y_edicion
+        if estudiante.pk not in inscritos_en_clase
     ]
     if faltantes:
         nombres = ", ".join(f"{e.nombre} {e.apellido}" for e in faltantes)
         raise ValidationError(
             f"No es posible asignar esta programación: {nombres} no está(n) "
-            f"inscrito(s) en la clase {clase} para la edición {programacion.edicion}."
+            f"inscrito(s) en la clase {clase}."
         )
 
 

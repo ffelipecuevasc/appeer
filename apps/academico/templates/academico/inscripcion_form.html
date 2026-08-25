@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block title %}{% if object %}Editar{% else %}Nueva{% endif %} inscripción · AppEER{% endblock %}
 {% block content %}
-    <a href="{% url 'academico:ediciones_detalle' id_edicion=edicion.id_edicion %}"
-       class="inline-flex items-center text-sm text-brand-accent hover:underline mb-6">&larr; Volver a la edición</a>
+    <a href="{% url 'academico:clases_detalle' id_clase=clase.id_clase %}"
+       class="inline-flex items-center text-sm text-brand-accent hover:underline mb-6">&larr; Volver a la clase</a>
     <div class="max-w-lg bg-brand-card rounded-3xl shadow-card p-8">
         <h1 class="text-xl font-medium text-brand-dark mb-1">{% if object %}Editar inscripción{% else %}Nueva
             inscripción{% endif %}</h1>
-        <p class="text-sm text-brand-muted mb-6">Edición: <strong>{{ edicion.nombre_edicion }}</strong></p>
+        <p class="text-sm text-brand-muted mb-6">Clase: <strong>{{ clase.nombre }}</strong></p>
         {% if form.non_field_errors %}
             <div class="mb-4 px-4 py-3 rounded-xl bg-red-50 text-red-700 text-sm">
                 {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>
@@ -18,17 +18,12 @@
                        class="block text-xs font-medium text-brand-dark mb-1.5">Estudiante</label>
                 {{ form.estudiante }}
                 <p class="mt-1 text-xs text-brand-muted">Solo se muestran estudiantes que todavía no están inscritos en
-                    esta edición.</p>
+                    esta clase.</p>
                 {% for error in form.estudiante.errors %}
                     <p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
             </div>
-            <div>
-                <label for="{{ form.clase.id_for_label }}" class="block text-xs font-medium text-brand-dark mb-1.5">Clase</label>
-                {{ form.clase }}
-                {% for error in form.clase.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
-            </div>
             <div class="flex justify-end gap-3 pt-2">
-                <a href="{% url 'academico:ediciones_detalle' id_edicion=edicion.id_edicion %}"
+                <a href="{% url 'academico:clases_detalle' id_clase=clase.id_clase %}"
                    class="px-5 py-2.5 rounded-full border border-brand-border text-sm font-medium text-brand-dark hover:bg-brand-bg/60 transition-colors">Cancelar</a>
                 <button type="submit"
                         class="px-5 py-2.5 rounded-full bg-brand-accent text-white text-sm font-medium hover:opacity-90 transition-opacity">

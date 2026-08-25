@@ -7,26 +7,31 @@ from apps.planificacion.models import ProgramacionClase
 
 
 def listar_programaciones():
-    """Queryset base de programaciones, con edición/instructor/tema precargados."""
-    return ProgramacionClase.objects.select_related("edicion", "instructor", "tema")
+    """Queryset base de programaciones, con clase/instructor/tema precargados."""
+    return ProgramacionClase.objects.select_related("clase", "instructor", "tema")
 
 
 def obtener_programacion_por_id(id_programacion):
     return (
         ProgramacionClase.objects
-        .select_related("edicion", "instructor", "tema")
+        .select_related("clase", "instructor", "tema")
         .filter(pk=id_programacion)
         .first()
     )
 
 
-def listar_programaciones_por_edicion(id_edicion):
+def listar_programaciones_por_clase(id_clase):
     """
-    Horario completo de una edición, ordenado por semana/día/aula
-    (orden ya definido en Meta.ordering) — la consulta de horario que
-    pide explícitamente la Subfase 3.2 del Plan de Trabajo.
+    Horario completo de una clase, ordenado por semana/día/aula (orden
+    ya definido en Meta.ordering).
+
+    Fase 11: antes se llamaba listar_programaciones_por_edicion y
+    filtraba por edicion_id. Con ProgramacionClase.clase como FK
+    directa (Adenda 9), el filtro es igual de directo, solo que ahora
+    describe lo que realmente es: el horario de UNA clase, no de una
+    edición que la contenía.
     """
-    return listar_programaciones().filter(edicion_id=id_edicion)
+    return listar_programaciones().filter(clase_id=id_clase)
 
 
 def listar_temas_disponibles(*, incluir_tema_id=None):
@@ -51,7 +56,6 @@ def listar_instructores():
     """
     Instructores para el <select> del formulario. Sin filtro
     adicional: el script SQL auditado no define ningún campo de
-    disponibilidad para Instructor (decisión ya registrada en el
-    Paso 0 de esta fase — "disponible" solo aplica a Tema).
+    disponibilidad para Instructor.
     """
     return Instructor.objects.order_by("apellido", "nombre")

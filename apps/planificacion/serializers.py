@@ -9,8 +9,8 @@ from core.dto import DTOBase
 @dataclass(frozen=True)
 class ProgramacionClaseDTO(DTOBase):
     id_programacion: int
-    edicion_id: int
-    edicion_nombre: str
+    clase_id: int
+    clase_nombre: str
     codigo_clase: str
     numero_semana: int
     dia_semana: str
@@ -27,13 +27,16 @@ class ProgramacionClaseDTO(DTOBase):
         InscripcionEstudianteDTO en apps.academico): necesita campos
         de los tres modelos relacionados para armar la vista de
         horario. Requiere que el queryset venga con
-        select_related("edicion", "instructor", "tema") —
+        select_related("clase", "instructor", "tema") —
         selectors.listar_programaciones() ya lo hace.
+
+        Fase 11: edicion_id/edicion_nombre pasan a ser
+        clase_id/clase_nombre (Adenda 9).
         """
         return cls(
             id_programacion=instance.id_programacion,
-            edicion_id=instance.edicion_id,
-            edicion_nombre=instance.edicion.nombre_edicion,
+            clase_id=instance.clase_id,
+            clase_nombre=instance.clase.nombre,
             codigo_clase=instance.codigo_clase,
             numero_semana=instance.numero_semana,
             dia_semana=instance.dia_semana,

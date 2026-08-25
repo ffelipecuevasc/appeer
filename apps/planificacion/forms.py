@@ -4,7 +4,7 @@ ProgramacionClase.
 """
 from django import forms
 
-from apps.academico.models import EdicionEscuela
+from apps.academico.models import Clase
 from apps.planificacion import selectors
 from apps.planificacion.models import ProgramacionClase
 
@@ -27,10 +27,13 @@ DIAS_SEMANA = [
 
 class ProgramacionClaseForm(forms.ModelForm):
     """
-    dia_semana sigue siendo un CharField libre a nivel de modelo (ya
-    migrado en la Subfase 3.1, sin tocarlo de nuevo); acá se restringe
-    a un <select> de 7 valores solo a nivel de formulario, sin
-    necesitar una nueva migración.
+    dia_semana sigue siendo un CharField libre a nivel de modelo; acá
+    se restringe a un <select> de 7 valores solo a nivel de
+    formulario, sin necesitar una nueva migración.
+
+    Fase 11: el campo `edicion` se renombra a `clase` (Adenda 9 — la
+    FK apunta ahora a academico.Clase directamente, no a una edición
+    que ya no existe).
     """
 
     dia_semana = forms.ChoiceField(
@@ -39,9 +42,9 @@ class ProgramacionClaseForm(forms.ModelForm):
 
     class Meta:
         model = ProgramacionClase
-        fields = ["edicion", "codigo_clase", "numero_semana", "dia_semana", "numero_aula", "instructor", "tema"]
+        fields = ["clase", "codigo_clase", "numero_semana", "dia_semana", "numero_aula", "instructor", "tema"]
         widgets = {
-            "edicion": forms.Select(attrs={"class": INPUT_CLASSES}),
+            "clase": forms.Select(attrs={"class": INPUT_CLASSES}),
             "codigo_clase": forms.TextInput(attrs={"class": INPUT_CLASSES}),
             "numero_semana": forms.NumberInput(attrs={"class": INPUT_CLASSES, "min": 0}),
             "numero_aula": forms.NumberInput(attrs={"class": INPUT_CLASSES, "min": 0}),
@@ -51,7 +54,7 @@ class ProgramacionClaseForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["edicion"].queryset = EdicionEscuela.objects.order_by("-fecha_inicio", "nombre_edicion")
+        self.fields["clase"].queryset = Clase.objects.order_by("-fecha_inicio", "nombre")
         self.fields["instructor"].queryset = selectors.listar_instructores()
         tema_actual_id = self.instance.tema_id if self.instance and self.instance.pk else None
         self.fields["tema"].queryset = selectors.listar_temas_disponibles(incluir_tema_id=tema_actual_id)

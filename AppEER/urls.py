@@ -29,7 +29,14 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("estudiantes/", include("apps.estudiantes.urls")),
     path("docencia/", include("apps.docencia.urls")),
-    path("academico/", include("apps.academico.urls")),
+    # Fase 11 (Adenda 9), Subfase 11.8: el prefijo visible cambia de
+    # "academico/" a "escuela/" — la app de Django SIGUE llamándose
+    # `academico` (renombrar el paquete movería 13+ archivos sin
+    # ningún beneficio funcional; el cliente fue explícito en que solo
+    # le importa lo que ve en la web). Como todo el proyecto referencia
+    # rutas por name y no por ruta literal (verificado al mover la raíz
+    # en la Adenda 8), este cambio de prefijo no rompe ningún enlace.
+    path("escuela/", include("apps.academico.urls")),
     path("planificacion/", include("apps.planificacion.urls")),
     path("asignaciones/", include("apps.asignaciones.urls")),
 ]

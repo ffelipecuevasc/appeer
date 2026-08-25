@@ -16,7 +16,7 @@
             <thead class="bg-brand-bg/60 text-brand-dark uppercase text-xs tracking-wide">
             <tr>
                 <th class="px-6 py-4">Nombre</th>
-                <th class="px-6 py-4">Año</th>
+                <th class="px-6 py-4">Período</th>
                 <th class="px-6 py-4"></th>
             </tr>
             </thead>
@@ -24,15 +24,15 @@
             {% for clase in clases %}
                 <tr class="hover:bg-brand-bg/40 transition-colors">
                     <td class="px-6 py-4 font-medium text-brand-dark">{{ clase.nombre }}</td>
-                    <td class="px-6 py-4 text-brand-muted">{{ clase.anio }}</td>
+                    <td class="px-6 py-4 text-brand-muted">{{ clase.fecha_inicio }} – {{ clase.fecha_fin }}</td>
                     <td class="px-6 py-4 text-right">
                         <div class="inline-flex items-center gap-4">
                             <a href="{% url 'academico:clases_detalle' id_clase=clase.id_clase %}"
                                class="text-brand-accent text-sm font-medium hover:underline">Ver</a>
                             <a href="{% url 'academico:clases_editar' id_clase=clase.id_clase %}"
                                class="text-brand-dark text-sm font-medium hover:underline">Editar</a>
-                            <a href="{% url 'academico:clases_eliminar' id_clase=clase.id_clase %}"
-                               class="text-red-600 text-sm font-medium hover:underline">Eliminar</a>
+                            <!-- Sin "Eliminar" a propósito: las clases nunca se
+                                 eliminan (Adenda 9, Decisión 2). -->
                         </div>
                     </td>
                 </tr>

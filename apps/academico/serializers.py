@@ -8,18 +8,29 @@ from core.dto import DTOBase
 
 
 @dataclass(frozen=True)
-class EdicionEscuelaDTO(DTOBase):
-    id_edicion: int
-    nombre_edicion: str
-    fecha_inicio: date | None
-    fecha_fin: date | None
-
-
-@dataclass(frozen=True)
 class ClaseDTO(DTOBase):
     id_clase: int
-    anio: int
     nombre: str
+    fecha_inicio: date
+    fecha_fin: date
+    anio: int
+
+    @classmethod
+    def from_model(cls, instance):
+        """
+        Override deliberado de DTOBase.from_model: `anio` no es un
+        campo del modelo (Adenda 9, Decisión 1) sino una property
+        derivada de fecha_inicio — DTOBase.from_model solo copia
+        atributos declarados como campos de Django, así que acá se
+        arma el dataclass a mano para incluirla igual.
+        """
+        return cls(
+            id_clase=instance.id_clase,
+            nombre=instance.nombre,
+            fecha_inicio=instance.fecha_inicio,
+            fecha_fin=instance.fecha_fin,
+            anio=instance.anio,
+        )
 
 
 @dataclass(frozen=True)
@@ -27,7 +38,6 @@ class InscripcionEstudianteDTO(DTOBase):
     id_inscripcion: int
     estudiante_id: int
     estudiante_nombre_completo: str
-    edicion_id: int
     clase_id: int
     clase_nombre: str
 
@@ -45,7 +55,6 @@ class InscripcionEstudianteDTO(DTOBase):
             id_inscripcion=instance.id_inscripcion,
             estudiante_id=instance.estudiante_id,
             estudiante_nombre_completo=f"{instance.estudiante.nombre} {instance.estudiante.apellido}",
-            edicion_id=instance.edicion_id,
             clase_id=instance.clase_id,
             clase_nombre=instance.clase.nombre,
         )

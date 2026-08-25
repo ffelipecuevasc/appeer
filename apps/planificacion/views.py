@@ -8,7 +8,7 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
-from apps.academico.models import EdicionEscuela
+from apps.academico.models import Clase
 from apps.planificacion import selectors, services
 from apps.planificacion.forms import ProgramacionClaseForm
 from apps.planificacion.serializers import ProgramacionClaseDTO
@@ -18,9 +18,12 @@ from core.mixins import AccessControlMixin
 class ProgramacionClaseListView(AccessControlMixin, ListView):
     """
     Vista de horario: lista todas las programaciones ordenadas por
-    edición/semana/día/aula (Meta.ordering del modelo), con filtro
-    opcional por edición vía querystring — sin JavaScript, un <select>
+    clase/semana/día/aula (Meta.ordering del modelo), con filtro
+    opcional por clase vía querystring — sin JavaScript, un <select>
     con botón "Filtrar" que envía un GET normal.
+
+    Fase 11: el filtro era por edición (?edicion=), ahora es por clase
+    (?clase=) — Adenda 9.
     """
     template_name = "planificacion/programacion_list.html"
     context_object_name = "programaciones"
@@ -28,16 +31,16 @@ class ProgramacionClaseListView(AccessControlMixin, ListView):
 
     def get_queryset(self):
         queryset = selectors.listar_programaciones()
-        id_edicion = self.request.GET.get("edicion")
-        if id_edicion:
-            queryset = queryset.filter(edicion_id=id_edicion)
+        id_clase = self.request.GET.get("clase")
+        if id_clase:
+            queryset = queryset.filter(clase_id=id_clase)
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["programaciones"] = [ProgramacionClaseDTO.from_model(p) for p in context["programaciones"]]
-        context["ediciones"] = EdicionEscuela.objects.order_by("-fecha_inicio", "nombre_edicion")
-        context["edicion_seleccionada"] = self.request.GET.get("edicion", "")
+        context["clases"] = Clase.objects.order_by("-fecha_inicio", "nombre")
+        context["clase_seleccionada"] = self.request.GET.get("clase", "")
         return context
 
 

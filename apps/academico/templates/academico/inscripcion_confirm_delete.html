@@ -6,7 +6,7 @@
         <p class="text-sm text-brand-muted mb-4">
             Vas a eliminar de forma permanente la inscripción de
             <strong>{{ object.estudiante.nombre }} {{ object.estudiante.apellido }}</strong>
-            en <strong>{{ object.edicion.nombre_edicion }}</strong>. Esta acción no se puede deshacer.
+            en <strong>{{ object.clase.nombre }}</strong>. Esta acción no se puede deshacer.
         </p>
         {% if form.non_field_errors %}
             <div class="mb-4 px-4 py-3 rounded-xl bg-red-50 text-red-700 text-sm">
@@ -15,7 +15,7 @@
         <form method="post">
             {% csrf_token %}
             <div class="flex justify-end gap-3">
-                <a href="{% url 'academico:ediciones_detalle' id_edicion=object.edicion_id %}"
+                <a href="{% url 'academico:clases_detalle' id_clase=object.clase_id %}"
                    class="px-5 py-2.5 rounded-full border border-brand-border text-sm font-medium text-brand-dark hover:bg-brand-bg/60 transition-colors">Cancelar</a>
                 <button type="submit"
                         class="px-5 py-2.5 rounded-full bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors">

@@ -19,13 +19,22 @@ Para borrar sin volver a poblar:
     limpiar()
 
 --------------------------------------------------------------------
-Decisiones de diseño de este script
+Fase 11 (Adenda 9): reescrito sobre la estructura nueva
+--------------------------------------------------------------------
+EdicionEscuela desapareció; Clase absorbió sus fechas (ahora
+obligatorias). Este script ya no crea ediciones — crea clases
+directamente, con fecha_inicio/fecha_fin cargadas desde el principio,
+tal como exige el modelo nuevo.
+
+--------------------------------------------------------------------
+Decisiones de diseño de este script (sin cambios respecto a la
+versión anterior)
 --------------------------------------------------------------------
 1. Escribe a través de los SERVICES de cada app, nunca con el ORM
    directo. Es más lento que un `bulk_create`, pero a cambio el
    poblado ejercita exactamente las mismas validaciones que la
    aplicación real: máximo dos integrantes por matrimonio, no doble
-   inscripción en la misma edición, estudiantes distintos en una
+   inscripción en la misma clase, estudiantes distintos en una
    pareja, tema activo para poder programarse, y la coherencia entre
    pareja y programación vía Unit of Work. Si el script corre
    completo, es porque los datos son válidos según las reglas de
@@ -47,11 +56,10 @@ para que la demo se vea con datos reconocibles.
 """
 from datetime import date
 
-from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from apps.academico import services as academico_services
-from apps.academico.models import Clase, EdicionEscuela, InscripcionEstudiante
+from apps.academico.models import Clase, InscripcionEstudiante
 from apps.asignaciones import services as asignaciones_services
 from apps.asignaciones.models import Pareja
 from apps.docencia import services as docencia_services
@@ -69,9 +77,6 @@ DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
 
 # ─── Datos de origen ────────────────────────────────────────────────
 
-# Los 7 matrimonios de la Turma 206. Cada tupla es
-# (fecha de matrimonio, cónyuge 1, cónyuge 2), y cada cónyuge es
-# (nombre, apellido, género).
 MATRIMONIOS = [
     (date(2015, 3, 14), ("Jefferson", "Mercês", MASC), ("Joice", "Mercês", FEM)),
     (date(2017, 11, 4), ("Mateus", "Cunha", MASC), ("Jaqueline", "Cunha", FEM)),
@@ -82,7 +87,6 @@ MATRIMONIOS = [
     (date(2016, 12, 10), ("Gerlan", "Santos", MASC), ("Adelaide", "Santos", FEM)),
 ]
 
-# Los 14 solteros de la Turma 206: (nombre, apellido, género).
 SOLTEROS = [
     ("Bruno", "Santos", MASC),
     ("Ana", "Cristina", FEM),
@@ -100,8 +104,6 @@ SOLTEROS = [
     ("María", "Vitória", FEM),
 ]
 
-# Turma anterior (edición 2025), para que el filtro por edición del
-# horario tenga más de una opción real que mostrar.
 TURMA_ANTERIOR = [
     ("Rodrigo", "Fuentes", MASC),
     ("Camila", "Navarrete", FEM),
@@ -120,9 +122,6 @@ INSTRUCTORES = [
     ("Bruno", "Roberto", "Instructor auxiliar"),
 ]
 
-# 24 temas activos (uno por cada clase programada de la edición 2026)
-# más 3 desactivados, para que la pantalla de Temas muestre ambos
-# estados y el filtro de temas disponibles tenga algo que filtrar.
 TEMAS_ACTIVOS = [
     "Lectura pública con sentido",
     "Cómo iniciar conversaciones",
@@ -156,10 +155,6 @@ TEMAS_INACTIVOS = [
     "Formulario S-4 en papel",
 ]
 
-# Las 14 parejas (pupitres) de la Turma 206, en el mismo orden en que
-# aparecen en la planilla del cliente. Se identifican por apellido
-# porque no hay dos personas con el mismo apellido y nombre distinto
-# fuera de los matrimonios.
 PAREJAS_TURMA_206 = [
     (("Ronaldo", "Silva"), ("Cinara", "Ferreira")),
     (("Álvaro", "Ramos"), ("Alex", "Silva")),
@@ -194,7 +189,7 @@ def _hay_datos():
         modelo.objects.exists()
         for modelo in (
             Estudiante, Matrimonio, Instructor, Tema,
-            EdicionEscuela, Clase, InscripcionEstudiante,
+            Clase, InscripcionEstudiante,
             ProgramacionClase, Pareja,
         )
     )
@@ -205,10 +200,16 @@ def _hay_datos():
 def limpiar(confirmar=True):
     """
     Borra todos los datos de negocio, en orden seguro respecto de las
-    claves foráneas (de la hoja del grafo hacia la raíz), para no
-    chocar con los PROTECT/RESTRICT definidos en los modelos.
+    claves foráneas (de la hoja del grafo hacia la raíz).
 
     NO toca usuarios, sesiones ni el log del admin.
+
+    Nota Fase 11: `Clase.delete()` se usa directamente acá, no
+    `academico.services` (que ya no ofrece `eliminar_clase` — las
+    clases nunca se eliminan desde la aplicación, Adenda 9, Decisión
+    2). Este script de poblado NO es la aplicación: es una herramienta
+    de desarrollo que opera fuera de esa regla de negocio, a
+    propósito, para poder rehacer la demo de un día para otro.
     """
     if confirmar:
         print("Esto borrará TODOS los datos de negocio (no los usuarios).")
@@ -219,8 +220,6 @@ def limpiar(confirmar=True):
 
     with transaction.atomic():
         _titulo("Limpiando datos existentes")
-        # Orden: primero lo que referencia a otros, al final lo
-        # referenciado. Pareja es la hoja del grafo (Nivel 3).
         for etiqueta, modelo in (
             ("Parejas", Pareja),
             ("Programaciones de clase", ProgramacionClase),
@@ -228,7 +227,6 @@ def limpiar(confirmar=True):
             ("Estudiantes", Estudiante),
             ("Matrimonios", Matrimonio),
             ("Clases", Clase),
-            ("Ediciones", EdicionEscuela),
             ("Temas", Tema),
             ("Instructores", Instructor),
         ):
@@ -243,11 +241,7 @@ def limpiar(confirmar=True):
 def poblar(limpiar_antes=False, limpiar=False):
     """
     Puebla la base con un conjunto completo y coherente de datos de
-    demostración. `limpiar=True` borra lo existente antes de poblar
-    (ambos nombres de parámetro funcionan, por comodidad).
-
-    Todo ocurre en una sola transacción: si algo falla, la base queda
-    intacta.
+    demostración. `limpiar=True` borra lo existente antes de poblar.
     """
     debe_limpiar = limpiar_antes or limpiar
 
@@ -278,36 +272,27 @@ def poblar(limpiar_antes=False, limpiar=False):
         docencia_services.crear_tema(titulo_tema=titulo, activo=False)
     _ok(f"{len(TEMAS_ACTIVOS)} temas activos + {len(TEMAS_INACTIVOS)} desactivados")
 
-    # ── Académico: ediciones y clases ───────────────────────────────
-    _titulo("2/6 · Académico")
+    # ── Académico: clases (Fase 11: ya no hay ediciones separadas) ──
+    _titulo("2/6 · Escuela")
 
-    edicion_2026 = academico_services.crear_edicion(
-        nombre_edicion="Escuela para Evangelizadores del Reino 2026",
+    clase_206 = academico_services.crear_clase(
+        nombre="Turma 206",
         fecha_inicio=date(2026, 3, 2),
         fecha_fin=date(2026, 6, 27),
     )
-    edicion_2025 = academico_services.crear_edicion(
-        nombre_edicion="Escuela para Evangelizadores del Reino 2025",
+    clase_205 = academico_services.crear_clase(
+        nombre="Turma 205",
         fecha_inicio=date(2025, 3, 3),
         fecha_fin=date(2025, 6, 28),
     )
-    _ok("2 ediciones")
-
-    clase_206 = academico_services.crear_clase(anio=2026, nombre="Turma 206")
-    clase_205 = academico_services.crear_clase(anio=2025, nombre="Turma 205")
-    _ok("2 clases")
+    _ok("2 clases (con fechas obligatorias, Adenda 9)")
 
     # ── Estudiantes: matrimonios primero, luego solteros ────────────
     _titulo("3/6 · Estudiantes")
 
-    # Índice nombre+apellido -> Estudiante, para armar las parejas
-    # después sin volver a consultar la base.
     indice = {}
 
     for fecha_matrimonio, conyuge_1, conyuge_2 in MATRIMONIOS:
-        # El matrimonio se crea primero y se pasa a AMBOS cónyuges:
-        # el Service valida que no se supere el máximo de dos
-        # integrantes, así que este es el camino correcto.
         matrimonio = estudiantes_services.crear_matrimonio(
             fecha_matrimonio=fecha_matrimonio
         )
@@ -345,56 +330,50 @@ def poblar(limpiar_antes=False, limpiar=False):
     ]
     _ok(f"{len(TURMA_ANTERIOR)} estudiantes de la turma anterior")
 
-    # ── Inscripciones ───────────────────────────────────────────────
+    # ── Inscripciones (Fase 11: solo clase, sin edición) ─────────────
     _titulo("4/6 · Inscripciones")
 
     estudiantes_206 = list(indice.values())
     for estudiante in estudiantes_206:
-        academico_services.crear_inscripcion(
-            estudiante=estudiante, edicion=edicion_2026, clase=clase_206
-        )
-    _ok(f"{len(estudiantes_206)} inscritos en {clase_206.nombre} (edición 2026)")
+        academico_services.crear_inscripcion(estudiante=estudiante, clase=clase_206)
+    _ok(f"{len(estudiantes_206)} inscritos en {clase_206.nombre}")
 
     for estudiante in estudiantes_2025:
-        academico_services.crear_inscripcion(
-            estudiante=estudiante, edicion=edicion_2025, clase=clase_205
-        )
-    _ok(f"{len(estudiantes_2025)} inscritos en {clase_205.nombre} (edición 2025)")
+        academico_services.crear_inscripcion(estudiante=estudiante, clase=clase_205)
+    _ok(f"{len(estudiantes_2025)} inscritos en {clase_205.nombre}")
 
-    # ── Planificación: horario de clases ────────────────────────────
+    # ── Planificación: horario de clases (Fase 11: cuelga de Clase) ─
     _titulo("5/6 · Planificación")
 
     programaciones_2026 = []
     contador = 0
-    for semana in range(1, 5):            # 4 semanas
-        for indice_dia, dia in enumerate(DIAS):   # 6 días por semana
-            tema = temas[contador]        # un tema distinto por clase
+    for semana in range(1, 5):
+        for indice_dia, dia in enumerate(DIAS):
+            tema = temas[contador]
             programacion = planificacion_services.crear_programacion(
-                edicion=edicion_2026,
+                clase=clase_206,
                 codigo_clase=f"C-{contador + 1:02d}",
                 numero_semana=semana,
                 dia_semana=dia,
                 numero_aula=1 + (indice_dia % 2),
-                # Alterna instructor A / B, como en la planilla real.
                 instructor=instructores[contador % len(instructores)],
                 tema=tema,
             )
             programaciones_2026.append(programacion)
             contador += 1
-    _ok(f"{len(programaciones_2026)} clases programadas (edición 2026)")
+    _ok(f"{len(programaciones_2026)} clases programadas ({clase_206.nombre})")
 
-    for semana in range(1, 2):            # una semana de muestra
-        for indice_dia, dia in enumerate(DIAS):
-            planificacion_services.crear_programacion(
-                edicion=edicion_2025,
-                codigo_clase=f"A-{indice_dia + 1:02d}",
-                numero_semana=semana,
-                dia_semana=dia,
-                numero_aula=1,
-                instructor=instructores[indice_dia % len(instructores)],
-                tema=temas[indice_dia],
-            )
-    _ok(f"{len(DIAS)} clases programadas (edición 2025)")
+    for indice_dia, dia in enumerate(DIAS):
+        planificacion_services.crear_programacion(
+            clase=clase_205,
+            codigo_clase=f"A-{indice_dia + 1:02d}",
+            numero_semana=1,
+            dia_semana=dia,
+            numero_aula=1,
+            instructor=instructores[indice_dia % len(instructores)],
+            tema=temas[indice_dia],
+        )
+    _ok(f"{len(DIAS)} clases programadas ({clase_205.nombre})")
 
     # ── Asignaciones: las 14 parejas de la Turma 206 ────────────────
     _titulo("6/6 · Asignaciones")
@@ -404,15 +383,10 @@ def poblar(limpiar_antes=False, limpiar=False):
             clase=clase_206,
             estudiante_1=indice[clave_1],
             estudiante_2=indice[clave_2],
-            # Se asigna una programación distinta a cada pareja. El
-            # Service valida, dentro del Unit of Work, que ambos
-            # estudiantes estén inscritos en esa clase y edición.
             programacion=programaciones_2026[numero],
         )
     _ok(f"{len(PAREJAS_TURMA_206)} parejas formadas ({len(MATRIMONIOS)} son matrimonios)")
 
-    # Parejas de la turma anterior, sin programación asociada, para
-    # mostrar también ese caso (el campo es opcional).
     for i in range(0, len(estudiantes_2025), 2):
         asignaciones_services.crear_pareja(
             clase=clase_205,
@@ -432,7 +406,6 @@ def _resumen():
         ("Instructores", Instructor.objects.count()),
         ("Temas", Tema.objects.count()),
         ("  · activos", Tema.objects.filter(activo=True).count()),
-        ("Ediciones", EdicionEscuela.objects.count()),
         ("Clases", Clase.objects.count()),
         ("Inscripciones", InscripcionEstudiante.objects.count()),
         ("Programaciones", ProgramacionClase.objects.count()),
@@ -446,6 +419,7 @@ def _resumen():
         "Sugerencia de recorrido para la demo:\n"
         "  1. Inicio — las tarjetas de resumen ya muestran los totales\n"
         "  2. Estudiantes — prueba el buscador en vivo (escribe 'San')\n"
-        "  3. Planificación — filtra el horario por edición\n"
-        "  4. Asignaciones — entra a la Turma 206 y revisa las parejas\n"
+        "  3. Escuela — abre la Turma 206 y revisa sus estudiantes inscritos\n"
+        "  4. Planificación — filtra el horario por clase\n"
+        "  5. Asignaciones — entra a la Turma 206 y revisa las parejas\n"
     )

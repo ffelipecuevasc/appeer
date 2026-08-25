@@ -4,7 +4,7 @@
     <header class="mb-6 flex items-center justify-between flex-wrap gap-4">
         <div>
             <h1 class="text-3xl font-medium text-brand-dark">Horario de clases</h1>
-            <p class="text-sm text-brand-muted">Programación de clases por edición, semana y día.</p>
+            <p class="text-sm text-brand-muted">Programación de clases por grupo, semana y día.</p>
         </div>
         <a href="{% url 'planificacion:programaciones_crear' %}"
            class="px-5 py-2.5 rounded-full bg-brand-accent text-white text-sm font-medium hover:opacity-90 transition-opacity">
@@ -14,14 +14,14 @@
 
     <form method="get" class="mb-6 flex items-end gap-3">
         <div>
-            <label for="edicion" class="block text-xs font-medium text-brand-dark mb-1.5">Filtrar por edición</label>
-            <select name="edicion" id="edicion"
+            <label for="clase" class="block text-xs font-medium text-brand-dark mb-1.5">Filtrar por clase</label>
+            <select name="clase" id="clase"
                     class="px-4 py-2.5 rounded-xl border border-brand-border bg-white text-sm">
-                <option value="">Todas las ediciones</option>
-                {% for edicion in ediciones %}
-                    <option value="{{ edicion.id_edicion }}"
-                            {% if edicion_seleccionada == edicion.id_edicion|stringformat:"s" %}selected{% endif %}>
-                        {{ edicion.nombre_edicion }}
+                <option value="">Todas las clases</option>
+                {% for clase in clases %}
+                    <option value="{{ clase.id_clase }}"
+                            {% if clase_seleccionada == clase.id_clase|stringformat:"s" %}selected{% endif %}>
+                        {{ clase.nombre }}
                     </option>
                 {% endfor %}
             </select>
@@ -37,7 +37,7 @@
             <thead class="bg-brand-bg/60 text-brand-dark uppercase text-xs tracking-wide">
             <tr>
                 <th class="px-6 py-4">Código</th>
-                <th class="px-6 py-4">Edición</th>
+                <th class="px-6 py-4">Clase</th>
                 <th class="px-6 py-4">Semana</th>
                 <th class="px-6 py-4">Día</th>
                 <th class="px-6 py-4">Aula</th>
@@ -50,7 +50,7 @@
             {% for programacion in programaciones %}
                 <tr class="hover:bg-brand-bg/40 transition-colors">
                     <td class="px-6 py-4 font-medium text-brand-dark">{{ programacion.codigo_clase }}</td>
-                    <td class="px-6 py-4 text-brand-muted">{{ programacion.edicion_nombre }}</td>
+                    <td class="px-6 py-4 text-brand-muted">{{ programacion.clase_nombre }}</td>
                     <td class="px-6 py-4 text-brand-muted">{{ programacion.numero_semana }}</td>
                     <td class="px-6 py-4 text-brand-muted">{{ programacion.dia_semana }}</td>
                     <td class="px-6 py-4 text-brand-muted">{{ programacion.numero_aula }}</td>
@@ -81,11 +81,11 @@
     {% if is_paginated %}
         <nav class="flex justify-center gap-2 mt-6">
             {% if page_obj.has_previous %}<a href="?page=
-                    {{ page_obj.previous_page_number }}{% if edicion_seleccionada %}&edicion={{ edicion_seleccionada }}{% endif %}"
+                    {{ page_obj.previous_page_number }}{% if clase_seleccionada %}&clase={{ clase_seleccionada }}{% endif %}"
                                              class="px-4 py-2 rounded-full bg-brand-card shadow-card text-sm text-brand-dark">Anterior</a>{% endif %}
             <span class="px-4 py-2 text-sm text-brand-muted">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
             {% if page_obj.has_next %}<a href="?page=
-                    {{ page_obj.next_page_number }}{% if edicion_seleccionada %}&edicion={{ edicion_seleccionada }}{% endif %}"
+                    {{ page_obj.next_page_number }}{% if clase_seleccionada %}&clase={{ clase_seleccionada }}{% endif %}"
                                          class="px-4 py-2 rounded-full bg-brand-card shadow-card text-sm text-brand-dark">Siguiente</a>{% endif %}
         </nav>
     {% endif %}

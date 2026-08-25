@@ -49,15 +49,13 @@ def listar_estudiantes_de_clase(id_clase):
 
 def listar_programaciones_de_clase(id_clase):
     """
-    Programaciones cuya edición coincide con alguna edición en la que
-    esta clase tiene inscripciones — mismo criterio de coherencia que
-    usa services._validar_coherencia_con_programacion, aplicado acá
-    como filtro de UX para el <select>.
+    Programaciones de una clase puntual, para poblar el <select> del
+    formulario de Pareja.
+
+    Fase 11 (Adenda 9): antes había que resolver primero las ediciones
+    en las que la clase tenía inscripciones, y recién ahí filtrar
+    programaciones por esas ediciones — un salto de dos pasos, porque
+    ProgramacionClase no conocía la clase directamente. Con la FK
+    directa, es un filtro de un solo paso.
     """
-    ediciones_ids = (
-        InscripcionEstudiante.objects
-        .filter(clase_id=id_clase)
-        .values_list("edicion_id", flat=True)
-        .distinct()
-    )
-    return ProgramacionClase.objects.filter(edicion_id__in=ediciones_ids).select_related("edicion")
+    return ProgramacionClase.objects.filter(clase_id=id_clase).select_related("clase")

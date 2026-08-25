@@ -1,54 +1,24 @@
 """
-Operaciones de escritura (alta, edición, baja) para apps.academico.
+Operaciones de escritura (alta, edición) para apps.academico.
 Toda regla de negocio de escritura vive aquí, nunca en las vistas.
+
+Fase 11 (Adenda 9): ya no existen crear_edicion/actualizar_edicion/
+eliminar_edicion (la entidad que operaban desapareció) ni
+eliminar_clase (Decisión 2 de la Adenda 9: las clases nunca se
+eliminan — no hay operación de Service para eso, a propósito, no por
+omisión).
 """
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models.deletion import ProtectedError
 
-from apps.academico.models import Clase, EdicionEscuela, InscripcionEstudiante
+from apps.academico.models import Clase, InscripcionEstudiante
 
 
-# --- EdicionEscuela ---------------------------------------------------
-
-@transaction.atomic
-def crear_edicion(*, nombre_edicion, fecha_inicio=None, fecha_fin=None):
-    edicion = EdicionEscuela(
-        nombre_edicion=nombre_edicion,
-        fecha_inicio=fecha_inicio,
-        fecha_fin=fecha_fin,
-    )
-    edicion.full_clean()
-    edicion.save()
-    return edicion
-
+# --- Clase ----------------------------------------------------------
 
 @transaction.atomic
-def actualizar_edicion(*, edicion, **campos):
-    for campo, valor in campos.items():
-        setattr(edicion, campo, valor)
-    edicion.full_clean()
-    edicion.save()
-    return edicion
-
-
-@transaction.atomic
-def eliminar_edicion(*, edicion):
-    """
-    Elimina una edición de forma permanente. `inscripciones_estudiantes`
-    referencia a `ediciones_escuela` con CASCADE (on_delete=CASCADE):
-    este borrado elimina también las inscripciones de esa edición sin
-    lanzar excepción — comportamiento esperado, coherente con la
-    sección 6 del Plan Maestro.
-    """
-    edicion.delete()
-
-
-# --- Clase --------------------------------------------------------------
-
-@transaction.atomic
-def crear_clase(*, anio, nombre):
-    clase = Clase(anio=anio, nombre=nombre)
+def crear_clase(*, nombre, fecha_inicio, fecha_fin):
+    clase = Clase(nombre=nombre, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
     clase.full_clean()
     clase.save()
     return clase
@@ -63,47 +33,39 @@ def actualizar_clase(*, clase, **campos):
     return clase
 
 
-@transaction.atomic
-def eliminar_clase(*, clase):
-    """
-    Elimina una clase de forma permanente. `inscripciones_estudiantes`
-    referencia a `clases` con RESTRICT (on_delete=PROTECT): si la
-    clase tiene inscripciones activas, Django lanza ProtectedError,
-    capturada acá con el mismo patrón que eliminar_instructor en
-    docencia y eliminar_estudiante en estudiantes.
-    """
-    try:
-        clase.delete()
-    except ProtectedError as exc:
-        raise ValidationError(
-            "No es posible eliminar esta clase: tiene inscripciones activas "
-            "que lo impiden."
-        ) from exc
+# No existe eliminar_clase(): decisión de negocio explícita (Adenda 9,
+# Decisión 2). Una clase se lista, se crea y se edita — nunca se borra.
+# Esto no es un olvido: es la ausencia deliberada de una operación.
 
 
-# --- InscripcionEstudiante ----------------------------------------------
+# --- InscripcionEstudiante -------------------------------------------
 
-def _validar_no_doble_inscripcion(*, estudiante, edicion, excluir_inscripcion_id=None):
+def _validar_no_doble_inscripcion(*, estudiante, clase, excluir_inscripcion_id=None):
     """
-    Verifica que `estudiante` no tenga ya una inscripción en `edicion`.
+    Verifica que `estudiante` no tenga ya una inscripción en `clase`.
     Se valida acá explícitamente —no solo vía la UniqueConstraint de
     base de datos— para poder devolver un ValidationError legible al
-    formulario en lugar de un IntegrityError crudo (Subfase 2.3,
-    Plan de Trabajo).
+    formulario en lugar de un IntegrityError crudo (criterio
+    establecido en la Subfase 2.3 del Plan de Trabajo v1.0).
+
+    Fase 11: la regla decía "no doble inscripción en la misma
+    edición"; con la fusión de EdicionEscuela en Clase (Adenda 9), es
+    la misma regla con un solo nombre en vez de dos — no es una regla
+    nueva.
     """
-    inscripciones = InscripcionEstudiante.objects.filter(estudiante=estudiante, edicion=edicion)
+    inscripciones = InscripcionEstudiante.objects.filter(estudiante=estudiante, clase=clase)
     if excluir_inscripcion_id is not None:
         inscripciones = inscripciones.exclude(pk=excluir_inscripcion_id)
     if inscripciones.exists():
         raise ValidationError(
-            "Este estudiante ya está inscrito en la edición seleccionada."
+            "Este estudiante ya está inscrito en la clase seleccionada."
         )
 
 
 @transaction.atomic
-def crear_inscripcion(*, estudiante, edicion, clase):
-    _validar_no_doble_inscripcion(estudiante=estudiante, edicion=edicion)
-    inscripcion = InscripcionEstudiante(estudiante=estudiante, edicion=edicion, clase=clase)
+def crear_inscripcion(*, estudiante, clase):
+    _validar_no_doble_inscripcion(estudiante=estudiante, clase=clase)
+    inscripcion = InscripcionEstudiante(estudiante=estudiante, clase=clase)
     inscripcion.full_clean()
     inscripcion.save()
     return inscripcion
@@ -112,9 +74,9 @@ def crear_inscripcion(*, estudiante, edicion, clase):
 @transaction.atomic
 def actualizar_inscripcion(*, inscripcion, **campos):
     estudiante = campos.get("estudiante", inscripcion.estudiante)
-    edicion = campos.get("edicion", inscripcion.edicion)
+    clase = campos.get("clase", inscripcion.clase)
     _validar_no_doble_inscripcion(
-        estudiante=estudiante, edicion=edicion, excluir_inscripcion_id=inscripcion.pk
+        estudiante=estudiante, clase=clase, excluir_inscripcion_id=inscripcion.pk
     )
     for campo, valor in campos.items():
         setattr(inscripcion, campo, valor)
@@ -126,8 +88,12 @@ def actualizar_inscripcion(*, inscripcion, **campos):
 @transaction.atomic
 def eliminar_inscripcion(*, inscripcion):
     """
-    Elimina una inscripción de forma permanente. Ninguna tabla del
-    script SQL auditado referencia a `inscripciones_estudiantes`, por
-    lo que hoy este borrado no tiene efectos colaterales.
+    Elimina una inscripción de forma permanente. A diferencia de la
+    clase a la que pertenece (que nunca se elimina), una inscripción
+    individual sí puede darse de baja — es el historial de un
+    estudiante puntual, no el registro de la clase misma. Ninguna
+    tabla del script SQL auditado referencia a
+    `inscripciones_estudiantes`, por lo que este borrado no tiene
+    efectos colaterales.
     """
     inscripcion.delete()

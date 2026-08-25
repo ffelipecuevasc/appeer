@@ -22,10 +22,11 @@ def _validar_tema_disponible(*, tema):
 
 
 @transaction.atomic
-def crear_programacion(*, edicion, codigo_clase, numero_semana, dia_semana, numero_aula, instructor, tema):
+def crear_programacion(*, clase, codigo_clase, numero_semana, dia_semana, numero_aula, instructor, tema):
+    """Fase 11: `edicion` se renombró a `clase` (Adenda 9 — misma FK, otro nombre)."""
     _validar_tema_disponible(tema=tema)
     programacion = ProgramacionClase(
-        edicion=edicion,
+        clase=clase,
         codigo_clase=codigo_clase,
         numero_semana=numero_semana,
         dia_semana=dia_semana,

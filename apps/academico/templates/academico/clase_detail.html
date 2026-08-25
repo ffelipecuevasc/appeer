@@ -7,12 +7,36 @@
         <div class="flex gap-3">
             <a href="{% url 'academico:clases_editar' id_clase=clase.id_clase %}"
                class="px-4 py-2 rounded-full border border-brand-border text-sm font-medium text-brand-dark hover:bg-brand-bg/60 transition-colors">Editar</a>
-            <a href="{% url 'academico:clases_eliminar' id_clase=clase.id_clase %}"
-               class="px-4 py-2 rounded-full border border-red-200 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">Eliminar</a>
+            <!-- Sin "Eliminar" a propósito: las clases nunca se eliminan
+                 (Adenda 9, Decisión 2). -->
         </div>
     </div>
-    <section class="bg-brand-card rounded-[32px] p-8 shadow-card">
+    <section class="bg-brand-card rounded-[32px] p-8 shadow-card mb-6">
         <h1 class="text-2xl font-medium text-brand-dark mb-2">{{ clase.nombre }}</h1>
-        <p class="text-sm text-brand-muted">Año {{ clase.anio }}</p>
+        <p class="text-sm text-brand-muted">{{ clase.fecha_inicio }} – {{ clase.fecha_fin }} · Año {{ clase.anio }}</p>
+    </section>
+
+    <section class="bg-brand-card rounded-[32px] p-8 shadow-card">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-medium text-brand-dark">Estudiantes inscritos</h2>
+            <a href="{% url 'academico:inscripciones_crear' id_clase=clase.id_clase %}"
+               class="text-sm text-brand-accent hover:underline">+ Inscribir estudiante</a>
+        </div>
+        <div class="divide-y divide-dashed divide-brand-border">
+            {% for inscripcion in inscripciones %}
+                <div class="flex items-center justify-between py-3">
+                    <span class="text-sm text-brand-dark">{{ inscripcion.estudiante_nombre_completo }}</span>
+                    <div class="flex items-center gap-4">
+                        <a href="{% url 'academico:inscripciones_editar' id_inscripcion=inscripcion.id_inscripcion %}"
+                           class="text-brand-dark text-sm font-medium hover:underline">Editar</a>
+                        <a href="{% url 'academico:inscripciones_eliminar' id_inscripcion=inscripcion.id_inscripcion %}"
+                           class="text-red-600 text-sm font-medium hover:underline">Eliminar</a>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-sm text-brand-muted text-center py-6">Todavía no hay estudiantes inscritos en esta
+                    clase.</p>
+            {% endfor %}
+        </div>
     </section>
 {% endblock %}

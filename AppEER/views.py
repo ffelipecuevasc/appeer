@@ -111,7 +111,9 @@ def inicio(request):
     context = {
         "total_estudiantes": estudiantes_selectors.listar_estudiantes().count(),
         "total_instructores": docencia_selectors.listar_instructores().count(),
-        "total_ediciones": academico_selectors.listar_ediciones().count(),
+        # Fase 11 (Adenda 9): total_ediciones -> total_clases. EdicionEscuela
+        # desapareció; Clase es ahora la única entidad que cuenta acá.
+        "total_clases": academico_selectors.listar_clases().count(),
         "total_parejas": asignaciones_selectors.listar_parejas().count(),
         "proximas_programaciones": proximas_programaciones,
     }

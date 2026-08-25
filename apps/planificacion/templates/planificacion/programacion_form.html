@@ -13,9 +13,9 @@
         <form method="post" class="space-y-5">
             {% csrf_token %}
             <div>
-                <label for="{{ form.edicion.id_for_label }}" class="block text-xs font-medium text-brand-dark mb-1.5">Edición</label>
-                {{ form.edicion }}
-                {% for error in form.edicion.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                <label for="{{ form.clase.id_for_label }}" class="block text-xs font-medium text-brand-dark mb-1.5">Clase</label>
+                {{ form.clase }}
+                {% for error in form.clase.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
             </div>
             <div>
                 <label for="{{ form.codigo_clase.id_for_label }}"
