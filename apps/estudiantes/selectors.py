@@ -4,7 +4,7 @@ Ninguna función de este módulo escribe en la base de datos.
 """
 from django.db.models import Count, Q
 
-from apps.estudiantes.models import Estudiante, Matrimonio
+from apps.estudiantes.models import Estudiante, Matrimonio, Responsabilidad
 
 # Duplica intencionalmente el "2" de MAX_INTEGRANTES_POR_MATRIMONIO
 # (services.py): el Selector no debe importar del Service (la capa
@@ -22,7 +22,17 @@ def listar_estudiantes(*, query=None):
     apellido. Parámetro opcional: el único call-site previo a esta
     subfase sigue funcionando sin pasar nada.
     """
-    qs = Estudiante.objects.select_related("matrimonio").order_by("apellido", "nombre")
+    qs = (
+        Estudiante.objects
+        .select_related("matrimonio")
+        # Fase 12: prefetch_related (no select_related — es una relación
+        # muchos-a-muchos) para que pintar las pastillas de
+        # responsabilidades en el listado no dispare una consulta por
+        # estudiante. Sin esto, un listado de 38 alumnos haría 39
+        # consultas en vez de 2.
+        .prefetch_related("responsabilidades")
+        .order_by("apellido", "nombre")
+    )
     if query:
         qs = qs.filter(Q(nombre__icontains=query) | Q(apellido__icontains=query))
     return qs
@@ -33,6 +43,7 @@ def obtener_estudiante_por_id(id_estudiante):
     return (
         Estudiante.objects
         .select_related("matrimonio")
+        .prefetch_related("responsabilidades")
         .filter(pk=id_estudiante)
         .first()
     )
@@ -62,3 +73,39 @@ def listar_matrimonios_con_cupo(*, excluir_matrimonio_id=None):
     if excluir_matrimonio_id is not None:
         filtro |= Q(pk=excluir_matrimonio_id)
     return matrimonios.filter(filtro).order_by("-fecha_matrimonio")
+
+
+# --- Responsabilidades (Fase 12, Subfase 12.3) -----------------------
+
+def listar_responsabilidades():
+    """
+    Catálogo completo de responsabilidades, para poblar el widget de
+    selección múltiple del formulario de Estudiante y el filtro del
+    listado.
+    """
+    return Responsabilidad.objects.order_by("nombre")
+
+
+def obtener_responsabilidad_por_id(id_responsabilidad):
+    return Responsabilidad.objects.filter(pk=id_responsabilidad).first()
+
+
+def listar_estudiantes_por_responsabilidad(id_responsabilidad):
+    """
+    Estudiantes que tienen una responsabilidad puntual.
+
+    No lo consume ninguna pantalla todavía: se construye acá porque
+    los módulos ya declarados en el Plan de Trabajo Maestro 2.0 lo
+    van a necesitar — las oraciones de inicio y fin (Fase 18) suelen
+    asignarse a ancianos, y las asignaciones de sala (Fase 19)
+    distinguen por responsabilidad. Es el mismo criterio con el que
+    la Fase 1 dejó selectors listos antes de tener vistas que los
+    usaran.
+    """
+    return (
+        Estudiante.objects
+        .filter(responsabilidades__pk=id_responsabilidad)
+        .select_related("matrimonio")
+        .prefetch_related("responsabilidades")
+        .order_by("apellido", "nombre")
+    )

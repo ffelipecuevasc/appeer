@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models.deletion import ProtectedError
 
-from apps.estudiantes.models import Estudiante, Matrimonio
+from apps.estudiantes.models import Estudiante, Matrimonio, Responsabilidad
 
 MAX_INTEGRANTES_POR_MATRIMONIO = 2
 
@@ -65,11 +65,16 @@ def crear_estudiante(
     fecha_inicio_servicio_tiempo_completo=None,
     matrimonio=None,
     nueva_fecha_matrimonio=None,
+    responsabilidades=None,
 ):
     """
     Alta de un estudiante. `matrimonio` asocia a uno ya existente;
     `nueva_fecha_matrimonio` (mutuamente excluyente) crea uno nuevo
     en la misma operación atómica.
+
+    Fase 12: `responsabilidades` acepta un iterable de Responsabilidad
+    (o un queryset, como el que entrega un ModelMultipleChoiceField).
+    Es opcional — un estudiante puede no tener ninguna.
     """
     matrimonio = _resolver_matrimonio(matrimonio, nueva_fecha_matrimonio)
     _validar_capacidad_matrimonio(matrimonio)
@@ -82,8 +87,16 @@ def crear_estudiante(
         fecha_inicio_servicio_tiempo_completo=fecha_inicio_servicio_tiempo_completo,
         matrimonio=matrimonio,
     )
-    estudiante.full_clean()
+    # exclude={"responsabilidades"}: full_clean() no puede validar una
+    # relación muchos-a-muchos en una instancia que todavía no tiene
+    # PK — la tabla intermedia necesita el id del estudiante para
+    # existir. Por eso el .set() va DESPUÉS del save(), y no antes.
+    # Ambos pasos viven dentro del mismo @transaction.atomic, así que
+    # si el .set() fallara, el estudiante tampoco quedaría creado.
+    estudiante.full_clean(exclude={"responsabilidades"})
     estudiante.save()
+    if responsabilidades is not None:
+        estudiante.responsabilidades.set(responsabilidades)
     return estudiante
 
 
@@ -101,14 +114,29 @@ def actualizar_estudiante(*, estudiante, **campos):
             campos.get("matrimonio"), nueva_fecha_matrimonio
         )
 
+    # Fase 12: se saca del diccionario ANTES del bucle de setattr().
+    # Una relación muchos-a-muchos no admite asignación directa
+    # (`estudiante.responsabilidades = [...]` lanza TypeError): se
+    # gestiona con .set(), y solo después de que el resto del modelo
+    # esté guardado. El centinela es la ausencia de la clave, no None:
+    # `responsabilidades=None` no llega desde el form (un
+    # ModelMultipleChoiceField vacío entrega un queryset vacío, no
+    # None), y distinguirlos permite que una edición parcial que no
+    # menciona el campo deje las responsabilidades intactas, en vez de
+    # borrarlas silenciosamente.
+    tiene_responsabilidades = "responsabilidades" in campos
+    responsabilidades = campos.pop("responsabilidades", None)
+
     if "matrimonio" in campos:
         _validar_capacidad_matrimonio(
             campos["matrimonio"], excluir_id_estudiante=estudiante.pk
         )
     for campo, valor in campos.items():
         setattr(estudiante, campo, valor)
-    estudiante.full_clean()
+    estudiante.full_clean(exclude={"responsabilidades"})
     estudiante.save()
+    if tiene_responsabilidades:
+        estudiante.responsabilidades.set(responsabilidades or [])
     return estudiante
 
 @transaction.atomic
@@ -138,3 +166,52 @@ def eliminar_estudiante(*, estudiante):
             "No es posible eliminar este estudiante: tiene relaciones activas "
             "que lo impiden (por ejemplo, una pareja asignada)."
         ) from exc
+
+# --- Responsabilidades (Fase 12, Subfase 12.3) -----------------------
+
+@transaction.atomic
+def crear_responsabilidad(*, nombre):
+    """
+    Alta de una responsabilidad nueva en el catálogo. Existe para que
+    el cliente pueda agregar responsabilidades sin esperar un
+    despliegue — el motivo por el que esto es una tabla y no un
+    TextChoices en código.
+    """
+    responsabilidad = Responsabilidad(nombre=nombre)
+    responsabilidad.full_clean()
+    responsabilidad.save()
+    return responsabilidad
+
+
+@transaction.atomic
+def actualizar_responsabilidad(*, responsabilidad, **campos):
+    for campo, valor in campos.items():
+        setattr(responsabilidad, campo, valor)
+    responsabilidad.full_clean()
+    responsabilidad.save()
+    return responsabilidad
+
+
+@transaction.atomic
+def asignar_responsabilidad(*, estudiante, responsabilidad):
+    """
+    Agrega UNA responsabilidad a un estudiante, sin tocar las que ya
+    tenía. Complementa a crear/actualizar_estudiante, que reemplazan
+    el conjunto completo vía .set().
+
+    .add() es idempotente por definición en una relación M2M: llamarlo
+    dos veces con la misma responsabilidad no duplica la fila de la
+    tabla intermedia ni lanza error.
+    """
+    estudiante.responsabilidades.add(responsabilidad)
+    return estudiante
+
+
+@transaction.atomic
+def quitar_responsabilidad(*, estudiante, responsabilidad):
+    """
+    Quita UNA responsabilidad de un estudiante. .remove() tampoco
+    falla si el estudiante no la tenía asignada.
+    """
+    estudiante.responsabilidades.remove(responsabilidad)
+    return estudiante

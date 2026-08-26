@@ -21,6 +21,38 @@ class Matrimonio(models.Model):
         return f"Matrimonio #{self.pk} ({self.fecha_matrimonio})"
 
 
+class Responsabilidad(models.Model):
+    """
+    Responsabilidad teocrática que puede tener un estudiante: Anciano,
+    Siervo Ministerial, Precursor Regular (Fase 12, Subfase 12.1).
+
+    Vive en apps.estudiantes y NO en una app propia: su significado
+    depende enteramente del estudiante que la porta, y no tiene opción
+    propia en el menú de navegación. Es una entidad, no un módulo
+    (Plan de Trabajo Maestro 2.0, sección 1).
+
+    Es un CATÁLOGO EDITABLE, no un TextChoices fijo en código: el
+    cliente puede necesitar agregar responsabilidades nuevas sin
+    esperar un despliegue. Los tres valores iniciales se cargan con
+    una migración de datos (0002_responsabilidad), no con un script
+    manual, para que cualquier entorno nuevo —incluido producción—
+    arranque con el catálogo poblado sin depender de que alguien
+    recuerde ejecutar algo.
+    """
+
+    id_responsabilidad = models.AutoField(primary_key=True, db_column="id_responsabilidad")
+    nombre = models.CharField(max_length=50, unique=True)
+
+    class Meta:
+        db_table = "responsabilidades"
+        verbose_name = "Responsabilidad"
+        verbose_name_plural = "Responsabilidades"
+        ordering = ["nombre"]
+
+    def __str__(self):
+        return self.nombre
+
+
 class Estudiante(models.Model):
 
     class Genero(models.TextChoices):
@@ -41,6 +73,17 @@ class Estudiante(models.Model):
         blank=True,
         related_name="estudiantes",
         db_column="id_matrimonio",
+    )
+    responsabilidades = models.ManyToManyField(
+        Responsabilidad,
+        blank=True,
+        related_name="estudiantes",
+        # Nombre de tabla explícito (aprobado en la Fase 12): sin esto,
+        # Django generaría `estudiantes_estudiante_responsabilidades`,
+        # rompiendo la disciplina de nombres del proyecto — todas las
+        # tablas siguen el patrón plural del script SQL auditado
+        # (`clases`, `inscripciones_estudiantes`, `programacion_clases`).
+        db_table="estudiantes_responsabilidades",
     )
 
     class Meta:

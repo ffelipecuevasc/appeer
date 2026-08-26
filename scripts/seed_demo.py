@@ -65,7 +65,7 @@ from apps.asignaciones.models import Pareja
 from apps.docencia import services as docencia_services
 from apps.docencia.models import Instructor, Tema
 from apps.estudiantes import services as estudiantes_services
-from apps.estudiantes.models import Estudiante, Matrimonio
+from apps.estudiantes.models import Estudiante, Matrimonio, Responsabilidad
 from apps.planificacion import services as planificacion_services
 from apps.planificacion.models import ProgramacionClase
 
@@ -229,6 +229,11 @@ def limpiar(confirmar=True):
             ("Clases", Clase),
             ("Temas", Tema),
             ("Instructores", Instructor),
+            # Responsabilidad NO se borra a propósito (Fase 12): la puebla
+            # la migración de datos 0003, no este script. Borrarla dejaría
+            # el catálogo vacío hasta volver a migrar desde cero, y además
+            # se llevaría puestas las responsabilidades que el cliente
+            # haya agregado a mano desde el panel de administración.
         ):
             borrados, _ = modelo.objects.all().delete()
             _ok(f"{etiqueta}: {borrados} registro(s) eliminado(s)")
@@ -318,6 +323,33 @@ def poblar(limpiar_antes=False, limpiar=False):
         )
     _ok(f"{len(SOLTEROS)} estudiantes solteros")
 
+    # Fase 12: responsabilidades sobre algunos varones, para que las
+    # pastillas del detalle/listado se vean con datos reales en la demo.
+    # Se leen del catálogo (cargado por la migración 0003), no se crean
+    # acá: el script no debe inventar valores que la migración ya define.
+    catalogo = {r.nombre: r for r in Responsabilidad.objects.all()}
+    asignaciones_responsabilidad = {
+        ("Jefferson", "Mercês"): ["Anciano"],
+        ("Samuel", "Neri"): ["Anciano", "Precursor Regular"],
+        ("Wanderson", "Monteiro"): ["Siervo Ministerial"],
+        ("Bruno", "Santos"): ["Siervo Ministerial", "Precursor Regular"],
+        ("Igor", "Souza"): ["Precursor Regular"],
+        ("Oldeni", "Sodré"): ["Anciano"],
+    }
+    total_asignadas = 0
+    for clave, nombres in asignaciones_responsabilidad.items():
+        estudiante = indice.get(clave)
+        if estudiante is None:
+            continue
+        for nombre_responsabilidad in nombres:
+            responsabilidad = catalogo.get(nombre_responsabilidad)
+            if responsabilidad is not None:
+                estudiantes_services.asignar_responsabilidad(
+                    estudiante=estudiante, responsabilidad=responsabilidad
+                )
+                total_asignadas += 1
+    _ok(f"{total_asignadas} responsabilidades asignadas a {len(asignaciones_responsabilidad)} estudiantes")
+
     estudiantes_2025 = [
         estudiantes_services.crear_estudiante(
             nombre=nombre,
@@ -403,6 +435,7 @@ def _resumen():
     filas = [
         ("Matrimonios", Matrimonio.objects.count()),
         ("Estudiantes", Estudiante.objects.count()),
+        ("Responsabilidades", Responsabilidad.objects.count()),
         ("Instructores", Instructor.objects.count()),
         ("Temas", Tema.objects.count()),
         ("  · activos", Tema.objects.filter(activo=True).count()),

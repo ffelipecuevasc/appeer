@@ -82,6 +82,27 @@
       </div>
     </div>
 
+    {# Fase 12: bloque de responsabilidades. Se recorre el campo en vez
+       de pintarlo con {{ form.responsabilidades }} para poder estilar
+       cada casilla — el render por defecto de CheckboxSelectMultiple es
+       una <ul> sin clases, que desentona con el resto del formulario. #}
+    <div class="pt-2 border-t border-brand-border">
+      <p class="text-xs font-medium text-brand-dark mb-3">Responsabilidades (opcional)</p>
+      <div class="flex flex-wrap gap-3">
+        {% for opcion in form.responsabilidades %}
+          <label class="flex items-center gap-2 px-4 py-2 rounded-xl border border-brand-border bg-white cursor-pointer hover:bg-brand-bg/40 transition-colors">
+            {{ opcion.tag }}
+            <span class="text-sm text-brand-text">{{ opcion.choice_label }}</span>
+          </label>
+        {% empty %}
+          <p class="text-xs text-brand-muted">
+            No hay responsabilidades cargadas en el catálogo todavía.
+          </p>
+        {% endfor %}
+      </div>
+      {% for error in form.responsabilidades.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+    </div>
+
     <div class="flex justify-end gap-3 pt-2">
       <a href="{% url 'estudiantes:listado' %}" class="px-5 py-2.5 rounded-full border border-brand-border text-sm font-medium text-brand-dark hover:bg-brand-bg/60 transition-colors">
         Cancelar

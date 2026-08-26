@@ -28,6 +28,20 @@
     <span class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/10">
       {{ estudiante.genero|title }}
     </span>
+    {# Fase 12: pastillas de responsabilidad. Van acá, junto a la
+       identidad del estudiante, y no en la lista de datos de la
+       derecha: son parte de quién es la persona, no un dato más de
+       ficha. El mismo componente se reutiliza en las tarjetas del
+       listado en la Fase 13. #}
+    {% if estudiante.responsabilidades %}
+      <div class="mt-4 flex flex-wrap justify-center gap-2">
+        {% for responsabilidad in estudiante.responsabilidades %}
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white text-brand-dark">
+            {{ responsabilidad.nombre }}
+          </span>
+        {% endfor %}
+      </div>
+    {% endif %}
   </section>
 
   <section class="md:col-span-2 bg-brand-card rounded-[32px] p-8 shadow-card">

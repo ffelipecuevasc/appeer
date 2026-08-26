@@ -24,6 +24,11 @@ class EstudianteForm(forms.ModelForm):
     excluyentes a nivel de formulario (ver clean()); la resolución
     real —crear uno nuevo o asociar el elegido— queda a cargo del
     Service, nunca de este formulario.
+
+    Fase 12: `responsabilidades` es un campo de selección múltiple
+    opcional. El Service se encarga de persistirlo con .set() después
+    del save(), porque una relación muchos-a-muchos necesita que el
+    estudiante ya tenga PK.
     """
 
     nueva_fecha_matrimonio = forms.DateField(
@@ -46,10 +51,12 @@ class EstudianteForm(forms.ModelForm):
             "fecha_bautismo",
             "fecha_inicio_servicio_tiempo_completo",
             "matrimonio",
+            "responsabilidades",
         ]
         labels = {
             "fecha_inicio_servicio_tiempo_completo": "Inicio de servicio a tiempo completo",
             "matrimonio": "Matrimonio existente",
+            "responsabilidades": "Responsabilidades",
         }
         widgets = {
             "nombre": forms.TextInput(attrs={"class": INPUT_CLASSES}),
@@ -61,6 +68,13 @@ class EstudianteForm(forms.ModelForm):
                 attrs={"type": "date", "class": INPUT_CLASSES}
             ),
             "matrimonio": forms.Select(attrs={"class": INPUT_CLASSES}),
+            # CheckboxSelectMultiple y no el <select multiple> nativo:
+            # el catálogo es corto (3 valores) y un usuario no técnico
+            # no tiene por qué saber que hay que mantener Ctrl apretado
+            # para marcar varias opciones. Sin INPUT_CLASSES: esas
+            # clases están pensadas para un campo de una sola línea y
+            # deformarían la lista de casillas.
+            "responsabilidades": forms.CheckboxSelectMultiple(),
         }
 
     def __init__(self, *args, **kwargs):
@@ -73,6 +87,11 @@ class EstudianteForm(forms.ModelForm):
         self.fields["matrimonio"].queryset = selectors.listar_matrimonios_con_cupo(
             excluir_matrimonio_id=matrimonio_actual_id
         )
+        # Fase 12: opcional — un estudiante puede no tener ninguna
+        # responsabilidad. El queryset sale del Selector, no de
+        # Responsabilidad.objects, para respetar el patrón de capas.
+        self.fields["responsabilidades"].required = False
+        self.fields["responsabilidades"].queryset = selectors.listar_responsabilidades()
 
     def clean(self):
         cleaned_data = super().clean()
