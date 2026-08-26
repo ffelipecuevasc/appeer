@@ -58,6 +58,7 @@ from datetime import date
 
 from django.db import transaction
 
+from apps.academico import selectors as academico_selectors
 from apps.academico import services as academico_services
 from apps.academico.models import Clase, InscripcionEstudiante
 from apps.asignaciones import services as asignaciones_services
@@ -366,9 +367,20 @@ def poblar(limpiar_antes=False, limpiar=False):
     _titulo("4/6 · Inscripciones")
 
     estudiantes_206 = list(indice.values())
+    # Adenda 10: crear_inscripcion inscribe automáticamente al cónyuge.
+    # Por eso se salta a quien ya quedó inscrito en la iteración de su
+    # pareja — llamarlo igual no rompería nada (la operación es
+    # idempotente), pero el conteo del log quedaría engañoso.
     for estudiante in estudiantes_206:
+        if InscripcionEstudiante.objects.filter(
+            estudiante=estudiante, clase=clase_206
+        ).exists():
+            continue
         academico_services.crear_inscripcion(estudiante=estudiante, clase=clase_206)
-    _ok(f"{len(estudiantes_206)} inscritos en {clase_206.nombre}")
+    _ok(
+        f"{academico_selectors.contar_inscritos(clase_206.pk)} inscritos en "
+        f"{clase_206.nombre} (los casados se inscribieron de a dos)"
+    )
 
     for estudiante in estudiantes_2025:
         academico_services.crear_inscripcion(estudiante=estudiante, clase=clase_205)

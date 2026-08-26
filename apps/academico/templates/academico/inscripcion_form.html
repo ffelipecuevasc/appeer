@@ -19,6 +19,13 @@
                 {{ form.estudiante }}
                 <p class="mt-1 text-xs text-brand-muted">Solo se muestran estudiantes que todavía no están inscritos en
                     esta clase.</p>
+                {# Adenda 10: la regla se explica acá, no solo se aplica en
+                   silencio — el usuario debe entender por qué al inscribir
+                   a una persona aparecen dos en el listado. #}
+                <p class="mt-2 text-xs text-brand-muted">
+                    Los estudiantes casados se inscriben siempre junto a su cónyuge: al elegir a
+                    uno de los dos, ambos quedan inscritos en la clase.
+                </p>
                 {% for error in form.estudiante.errors %}
                     <p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
             </div>

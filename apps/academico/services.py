@@ -12,6 +12,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from apps.academico.models import Clase, InscripcionEstudiante
+from core.unit_of_work import UnitOfWork
 
 
 # --- Clase ----------------------------------------------------------
@@ -62,19 +63,103 @@ def _validar_no_doble_inscripcion(*, estudiante, clase, excluir_inscripcion_id=N
         )
 
 
+def obtener_conyuge(estudiante):
+    """
+    Devuelve el cónyuge de `estudiante` como Estudiante registrado, o
+    None si el estudiante no está casado.
+
+    Lanza ValidationError si el estudiante SÍ está casado pero su
+    cónyuge no está registrado como estudiante (Adenda 10, opción A):
+    ese es un dato incompleto, no un caso válido. `Matrimonio` admite
+    un solo integrante a nivel de modelo —la regla de la Fase 1 es
+    "máximo dos", no "exactamente dos"—, así que este estado es
+    alcanzable y hay que detectarlo explícitamente.
+    """
+    if estudiante.matrimonio_id is None:
+        return None
+
+    conyuges = list(
+        estudiante.matrimonio.estudiantes.exclude(pk=estudiante.pk)
+    )
+    if not conyuges:
+        raise ValidationError(
+            f"{estudiante.nombre} {estudiante.apellido} está casado/a, pero su "
+            f"cónyuge no está registrado/a como estudiante. Registra primero al "
+            f"cónyuge para poder inscribir a ambos en la clase."
+        )
+    return conyuges[0]
+
+
 @transaction.atomic
 def crear_inscripcion(*, estudiante, clase):
-    _validar_no_doble_inscripcion(estudiante=estudiante, clase=clase)
-    inscripcion = InscripcionEstudiante(estudiante=estudiante, clase=clase)
-    inscripcion.full_clean()
-    inscripcion.save()
-    return inscripcion
+    """
+    Inscribe a un estudiante en una clase. Si está casado, inscribe
+    TAMBIÉN a su cónyuge, en la misma operación atómica (Adenda 10).
+
+    Por qué automático y no una validación que rechaza: la regla de
+    negocio es que un casado solo asiste a la escuela invitado junto
+    a su cónyuge. Inscribir a ambos de una vez hace que el estado
+    inválido (un casado inscrito solo) sea INALCANZABLE, en vez de
+    meramente prohibido — no queda ninguna puerta lateral por la que
+    llegar a él.
+
+    Devuelve la inscripción del estudiante indicado. La del cónyuge,
+    si la hubo, se crea igual pero no se devuelve: quien llama pidió
+    inscribir a esta persona, el cónyuge es consecuencia de la regla.
+    """
+    with UnitOfWork():
+        conyuge = obtener_conyuge(estudiante)
+
+        _validar_no_doble_inscripcion(estudiante=estudiante, clase=clase)
+        inscripcion = InscripcionEstudiante(estudiante=estudiante, clase=clase)
+        inscripcion.full_clean()
+        inscripcion.save()
+
+        if conyuge is not None:
+            # Idempotente a propósito: si el cónyuge ya estaba inscrito
+            # (por ejemplo, porque esta misma función se llamó antes con
+            # los roles invertidos), no se duplica ni se lanza error —
+            # el objetivo es que la pareja quede completa, no imponer
+            # quién se inscribió primero.
+            ya_inscrito = InscripcionEstudiante.objects.filter(
+                estudiante=conyuge, clase=clase
+            ).exists()
+            if not ya_inscrito:
+                inscripcion_conyuge = InscripcionEstudiante(estudiante=conyuge, clase=clase)
+                inscripcion_conyuge.full_clean()
+                inscripcion_conyuge.save()
+
+        return inscripcion
 
 
 @transaction.atomic
 def actualizar_inscripcion(*, inscripcion, **campos):
+    """
+    Cambia el estudiante asignado a una inscripción existente.
+
+    Adenda 10: si el estudiante SALIENTE o el ENTRANTE está casado,
+    esta operación se rechaza. Reasignar una inscripción de un casado
+    a otra persona rompería la pareja en la clase (dejaría al cónyuge
+    solo), y esta operación no tiene forma de reacomodar ambas
+    inscripciones sin volverse ambigua. Para esos casos el camino
+    correcto es dar de baja la inscripción —que da de baja a la
+    pareja completa— y volver a inscribir.
+    """
+    estudiante_saliente = inscripcion.estudiante
     estudiante = campos.get("estudiante", inscripcion.estudiante)
     clase = campos.get("clase", inscripcion.clase)
+
+    cambia_estudiante = estudiante.pk != estudiante_saliente.pk
+    if cambia_estudiante:
+        for candidato, rol in ((estudiante_saliente, "actual"), (estudiante, "nuevo")):
+            if candidato.matrimonio_id is not None:
+                raise ValidationError(
+                    f"No es posible reasignar esta inscripción: el estudiante "
+                    f"{rol} ({candidato.nombre} {candidato.apellido}) está "
+                    f"casado/a y debe inscribirse junto a su cónyuge. Da de "
+                    f"baja la inscripción y vuelve a inscribir a la pareja."
+                )
+
     _validar_no_doble_inscripcion(
         estudiante=estudiante, clase=clase, excluir_inscripcion_id=inscripcion.pk
     )
@@ -88,12 +173,34 @@ def actualizar_inscripcion(*, inscripcion, **campos):
 @transaction.atomic
 def eliminar_inscripcion(*, inscripcion):
     """
-    Elimina una inscripción de forma permanente. A diferencia de la
-    clase a la que pertenece (que nunca se elimina), una inscripción
-    individual sí puede darse de baja — es el historial de un
-    estudiante puntual, no el registro de la clase misma. Ninguna
-    tabla del script SQL auditado referencia a
-    `inscripciones_estudiantes`, por lo que este borrado no tiene
-    efectos colaterales.
+    Da de baja una inscripción. Si el estudiante está casado, da de
+    baja TAMBIÉN la de su cónyuge en esa misma clase (Adenda 10).
+
+    Es la contraparte necesaria de crear_inscripcion: sin esto, la
+    regla del cónyuge tendría una puerta trasera — bastaría eliminar
+    la inscripción de uno de los dos para dejar al otro casado y solo
+    en la clase, justo el estado que la regla existe para impedir.
+
+    A diferencia de la clase a la que pertenece (que nunca se
+    elimina), una inscripción sí puede darse de baja: es el historial
+    de una persona puntual, no el registro de la clase misma.
     """
-    inscripcion.delete()
+    with UnitOfWork():
+        estudiante = inscripcion.estudiante
+        clase_id = inscripcion.clase_id
+
+        # obtener_conyuge puede lanzar ValidationError si el cónyuge no
+        # está registrado. En una BAJA eso no debe bloquear: el dato ya
+        # es inconsistente y forzar al usuario a arreglarlo antes de
+        # poder deshacer la inscripción sería dejarlo sin salida.
+        try:
+            conyuge = obtener_conyuge(estudiante)
+        except ValidationError:
+            conyuge = None
+
+        inscripcion.delete()
+
+        if conyuge is not None:
+            InscripcionEstudiante.objects.filter(
+                estudiante=conyuge, clase_id=clase_id
+            ).delete()

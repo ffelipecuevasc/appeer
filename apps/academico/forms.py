@@ -60,3 +60,16 @@ class InscripcionEstudianteForm(forms.ModelForm):
         self.fields["estudiante"].queryset = selectors.listar_estudiantes_disponibles_para_clase(
             clase.pk, excluir_inscripcion_id=excluir_inscripcion_id
         )
+        # Adenda 10: el <select> muestra "Nombre Apellido (con su cónyuge)"
+        # para los casados, de modo que el usuario sepa ANTES de guardar
+        # que esa opción inscribe a dos personas, no a una. Es solo la
+        # etiqueta visible: el value sigue siendo el id del estudiante,
+        # y la regla real la aplica el Service.
+        self.fields["estudiante"].label_from_instance = self._etiqueta_estudiante
+
+    @staticmethod
+    def _etiqueta_estudiante(estudiante):
+        etiqueta = f"{estudiante.nombre} {estudiante.apellido}"
+        if estudiante.matrimonio_id is not None:
+            etiqueta += " (se inscribe junto a su cónyuge)"
+        return etiqueta

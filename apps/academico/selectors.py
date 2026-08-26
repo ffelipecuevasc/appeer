@@ -59,3 +59,8 @@ def listar_estudiantes_disponibles_para_clase(id_clase, *, excluir_inscripcion_i
     inscritos_ids = inscritos_ids.values_list("estudiante_id", flat=True)
 
     return Estudiante.objects.exclude(pk__in=inscritos_ids).order_by("apellido", "nombre")
+
+
+def contar_inscritos(id_clase):
+    """Total de estudiantes inscritos en una clase."""
+    return InscripcionEstudiante.objects.filter(clase_id=id_clase).count()

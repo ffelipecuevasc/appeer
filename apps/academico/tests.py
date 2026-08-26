@@ -19,6 +19,7 @@ from django.urls import reverse
 
 from apps.academico import services
 from apps.academico.models import Clase, InscripcionEstudiante
+from apps.estudiantes import services as estudiantes_services
 from apps.estudiantes.models import Estudiante
 
 U, C = "test_user", "Clave-De-Prueba-8020"
@@ -170,3 +171,177 @@ class RutaEscuelaTests(TestCase):
 
     def test_clases_listado_es_la_raiz_del_modulo(self):
         self.assertEqual(reverse("academico:clases_listado"), "/escuela/")
+
+
+class InscripcionEnParejaTests(TestCase):
+    """
+    Adenda 10 (Fase 12.5): un estudiante casado solo puede estar
+    inscrito en una clase junto a su cónyuge. La regla se implementa
+    haciendo el estado inválido INALCANZABLE, no solo prohibido.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.clase = services.crear_clase(
+            nombre="Turma 206", fecha_inicio="2026-03-02", fecha_fin="2026-06-27"
+        )
+        cls.otra_clase = services.crear_clase(
+            nombre="Turma 207", fecha_inicio="2026-07-01", fecha_fin="2026-11-01"
+        )
+
+    def _matrimonio_completo(self, apellido="Neri"):
+        matrimonio = estudiantes_services.crear_matrimonio(fecha_matrimonio="2019-01-26")
+        esposo = estudiantes_services.crear_estudiante(
+            nombre="Samuel", apellido=apellido,
+            genero=Estudiante.Genero.MASCULINO, matrimonio=matrimonio,
+        )
+        esposa = estudiantes_services.crear_estudiante(
+            nombre="Jocilene", apellido=apellido,
+            genero=Estudiante.Genero.FEMENINO, matrimonio=matrimonio,
+        )
+        return esposo, esposa
+
+    def _soltero(self, nombre="Bruno"):
+        return estudiantes_services.crear_estudiante(
+            nombre=nombre, apellido="Santos", genero=Estudiante.Genero.MASCULINO
+        )
+
+    # --- Alta -------------------------------------------------------
+
+    def test_inscribir_a_un_casado_inscribe_tambien_al_conyuge(self):
+        esposo, esposa = self._matrimonio_completo()
+        services.crear_inscripcion(estudiante=esposo, clase=self.clase)
+        self.assertEqual(InscripcionEstudiante.objects.count(), 2)
+        self.assertTrue(
+            InscripcionEstudiante.objects.filter(estudiante=esposa, clase=self.clase).exists()
+        )
+
+    def test_da_igual_cual_de_los_dos_se_inscriba(self):
+        esposo, esposa = self._matrimonio_completo()
+        services.crear_inscripcion(estudiante=esposa, clase=self.clase)
+        self.assertTrue(
+            InscripcionEstudiante.objects.filter(estudiante=esposo, clase=self.clase).exists()
+        )
+
+    def test_inscribir_al_segundo_conyuge_despues_no_duplica(self):
+        """Idempotente: la pareja ya está completa, no se rompe nada."""
+        esposo, esposa = self._matrimonio_completo()
+        services.crear_inscripcion(estudiante=esposo, clase=self.clase)
+        with self.assertRaises(ValidationError):
+            services.crear_inscripcion(estudiante=esposa, clase=self.clase)
+        self.assertEqual(InscripcionEstudiante.objects.count(), 2)
+
+    def test_un_soltero_se_inscribe_solo(self):
+        services.crear_inscripcion(estudiante=self._soltero(), clase=self.clase)
+        self.assertEqual(InscripcionEstudiante.objects.count(), 1)
+
+    def test_conyuge_no_registrado_bloquea_con_mensaje_claro(self):
+        """Adenda 10, opción A: dato incompleto, no caso válido."""
+        matrimonio = estudiantes_services.crear_matrimonio(fecha_matrimonio="2019-01-26")
+        solo = estudiantes_services.crear_estudiante(
+            nombre="Samuel", apellido="Neri",
+            genero=Estudiante.Genero.MASCULINO, matrimonio=matrimonio,
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            services.crear_inscripcion(estudiante=solo, clase=self.clase)
+        self.assertIn("cónyuge no está registrado", str(ctx.exception))
+        self.assertEqual(InscripcionEstudiante.objects.count(), 0)
+
+    def test_el_bloqueo_es_atomico_no_deja_nada_a_medias(self):
+        matrimonio = estudiantes_services.crear_matrimonio(fecha_matrimonio="2019-01-26")
+        solo = estudiantes_services.crear_estudiante(
+            nombre="Samuel", apellido="Neri",
+            genero=Estudiante.Genero.MASCULINO, matrimonio=matrimonio,
+        )
+        with self.assertRaises(ValidationError):
+            services.crear_inscripcion(estudiante=solo, clase=self.clase)
+        self.assertFalse(InscripcionEstudiante.objects.filter(estudiante=solo).exists())
+
+    # --- Baja -------------------------------------------------------
+
+    def test_dar_de_baja_a_un_casado_da_de_baja_al_conyuge(self):
+        """Sin esto, la regla tendría una puerta trasera."""
+        esposo, esposa = self._matrimonio_completo()
+        services.crear_inscripcion(estudiante=esposo, clase=self.clase)
+        inscripcion = InscripcionEstudiante.objects.get(estudiante=esposo, clase=self.clase)
+        services.eliminar_inscripcion(inscripcion=inscripcion)
+        self.assertEqual(InscripcionEstudiante.objects.count(), 0)
+
+    def test_baja_de_un_soltero_no_afecta_a_nadie_mas(self):
+        soltero = self._soltero()
+        otro = self._soltero(nombre="Jefferson")
+        services.crear_inscripcion(estudiante=soltero, clase=self.clase)
+        services.crear_inscripcion(estudiante=otro, clase=self.clase)
+        inscripcion = InscripcionEstudiante.objects.get(estudiante=soltero)
+        services.eliminar_inscripcion(inscripcion=inscripcion)
+        self.assertEqual(InscripcionEstudiante.objects.count(), 1)
+
+    def test_baja_con_conyuge_no_registrado_no_queda_bloqueada(self):
+        """
+        Un dato ya inconsistente no debe dejar al usuario sin salida:
+        la baja procede igual, sin exigir arreglar el dato primero.
+        """
+        matrimonio = estudiantes_services.crear_matrimonio(fecha_matrimonio="2019-01-26")
+        esposo = estudiantes_services.crear_estudiante(
+            nombre="Samuel", apellido="Neri",
+            genero=Estudiante.Genero.MASCULINO, matrimonio=matrimonio,
+        )
+        esposa = estudiantes_services.crear_estudiante(
+            nombre="Jocilene", apellido="Neri",
+            genero=Estudiante.Genero.FEMENINO, matrimonio=matrimonio,
+        )
+        services.crear_inscripcion(estudiante=esposo, clase=self.clase)
+        # El cónyuge deja de ser estudiante después de inscribirse.
+        esposa.delete()
+        inscripcion = InscripcionEstudiante.objects.get(estudiante=esposo)
+        services.eliminar_inscripcion(inscripcion=inscripcion)
+        self.assertEqual(InscripcionEstudiante.objects.count(), 0)
+
+    # --- Edición ----------------------------------------------------
+
+    def test_reasignar_la_inscripcion_de_un_casado_se_rechaza(self):
+        esposo, _ = self._matrimonio_completo()
+        soltero = self._soltero()
+        services.crear_inscripcion(estudiante=esposo, clase=self.clase)
+        inscripcion = InscripcionEstudiante.objects.get(estudiante=esposo)
+        with self.assertRaises(ValidationError):
+            services.actualizar_inscripcion(inscripcion=inscripcion, estudiante=soltero)
+
+    def test_reasignar_hacia_un_casado_tambien_se_rechaza(self):
+        esposo, _ = self._matrimonio_completo()
+        soltero = self._soltero()
+        services.crear_inscripcion(estudiante=soltero, clase=self.otra_clase)
+        inscripcion = InscripcionEstudiante.objects.get(estudiante=soltero)
+        with self.assertRaises(ValidationError):
+            services.actualizar_inscripcion(inscripcion=inscripcion, estudiante=esposo)
+
+    def test_reasignar_entre_solteros_sigue_funcionando(self):
+        soltero = self._soltero()
+        otro = self._soltero(nombre="Jefferson")
+        services.crear_inscripcion(estudiante=soltero, clase=self.clase)
+        inscripcion = InscripcionEstudiante.objects.get(estudiante=soltero)
+        services.actualizar_inscripcion(inscripcion=inscripcion, estudiante=otro)
+        inscripcion.refresh_from_db()
+        self.assertEqual(inscripcion.estudiante_id, otro.pk)
+
+    # --- Invariante -------------------------------------------------
+
+    def test_ninguna_clase_queda_con_un_casado_solo(self):
+        """El invariante que toda la Adenda 10 existe para garantizar."""
+        esposo, esposa = self._matrimonio_completo()
+        self._soltero()
+        services.crear_inscripcion(estudiante=esposo, clase=self.clase)
+        services.crear_inscripcion(estudiante=self._soltero("Alex"), clase=self.clase)
+
+        for inscripcion in InscripcionEstudiante.objects.filter(clase=self.clase):
+            estudiante = inscripcion.estudiante
+            if estudiante.matrimonio_id is None:
+                continue
+            conyuges = estudiante.matrimonio.estudiantes.exclude(pk=estudiante.pk)
+            for conyuge in conyuges:
+                self.assertTrue(
+                    InscripcionEstudiante.objects.filter(
+                        estudiante=conyuge, clase=self.clase
+                    ).exists(),
+                    f"{estudiante} quedó inscrito sin su cónyuge",
+                )
