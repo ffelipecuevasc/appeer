@@ -1,0 +1,37 @@
+{% comment %}
+  Tarjeta contenedora de matrimonio (Fase 13, Subfase 13.3).
+
+  Encierra las tarjetas individuales de ambos cónyuges dentro de un
+  contenedor mayor en mostaza, para que se lea de un vistazo que son
+  una unidad.
+
+  Parámetro esperado:
+    conyuges — lista de EstudianteDTO (normalmente dos)
+
+  La Adenda 10 garantiza que un casado no puede estar inscrito sin su
+  cónyuge, así que dentro de una clase siempre llegan los dos. Aun
+  así el template contempla el caso de uno solo: puede ocurrir cuando
+  hay una búsqueda activa y el término no coincide con el cónyuge.
+  En ese caso se dice explícitamente, en vez de mostrar un hueco.
+{% endcomment %}
+<article class="rounded-3xl border-2 border-brand-matrimonio/30 bg-brand-matrimonioBg p-4">
+    <header class="mb-3 flex items-center gap-2 px-1">
+        <svg class="h-4 w-4 text-brand-matrimonio" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path fill="currentColor"
+                  d="M13.389 17.38q-.62-.618-.62-1.495t.62-1.496t1.496-.62q.877 0 1.496.62t.62 1.496t-.62 1.496t-1.496.619t-1.496-.62"/>
+        </svg>
+        <h3 class="text-xs font-semibold uppercase tracking-wide text-brand-matrimonio">Matrimonio</h3>
+    </header>
+
+    <div class="grid gap-3 sm:grid-cols-2">
+        {% for estudiante in conyuges %}
+            {% include "estudiantes/_estudiante_card.html" with estudiante=estudiante acento="border-brand-matrimonio/25" fondo="bg-brand-matrimonioBg" compacta=True color_icono="text-brand-matrimonio" %}
+        {% endfor %}
+    </div>
+
+    {% if conyuges|length == 1 %}
+        <p class="mt-3 px-1 text-[11px] text-brand-matrimonio">
+            Su cónyuge no coincide con la búsqueda actual.
+        </p>
+    {% endif %}
+</article>

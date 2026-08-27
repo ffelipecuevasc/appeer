@@ -1,0 +1,72 @@
+{% comment %}
+  Los tres grupos de tarjetas (Fase 13, Subfase 13.4).
+
+  Este es el fragmento que la búsqueda en vivo reemplaza vía fetch
+  (Subfase 6.3, adaptada): reemplaza a _estudiante_rows.html, que
+  servía filas de tabla. Por eso vive en su propio archivo y no
+  dentro de estudiante_list.html — se renderiza solo cuando la
+  petición viene marcada como AJAX.
+{% endcomment %}
+{% if total == 0 %}
+    <div class="rounded-3xl bg-brand-card p-12 text-center shadow-card">
+        <p class="text-sm text-brand-muted">
+            {% if query %}
+                No se encontraron estudiantes que coincidan con &ldquo;{{ query }}&rdquo; en esta clase.
+            {% else %}
+                Esta clase todavía no tiene estudiantes inscritos.
+            {% endif %}
+        </p>
+    </div>
+{% else %}
+    <div class="space-y-8">
+
+        {% if grupos.matrimonios %}
+            <section>
+                <div class="mb-3 flex items-baseline gap-2">
+                    <h2 class="text-lg font-medium text-brand-dark">Matrimonios</h2>
+                    <span class="rounded-full bg-brand-matrimonioBg px-2.5 py-0.5 text-xs font-medium text-brand-matrimonio">
+                        {{ grupos.matrimonios|length }}
+                    </span>
+                </div>
+                <div class="grid gap-4 lg:grid-cols-2">
+                    {% for conyuges in grupos.matrimonios %}
+                        {% include "estudiantes/_matrimonio_card.html" with conyuges=conyuges %}
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        {% if grupos.hombres_solteros %}
+            <section>
+                <div class="mb-3 flex items-baseline gap-2">
+                    <h2 class="text-lg font-medium text-brand-dark">Hombres solteros</h2>
+                    <span class="rounded-full bg-brand-solteroBg px-2.5 py-0.5 text-xs font-medium text-brand-soltero">
+                        {{ grupos.hombres_solteros|length }}
+                    </span>
+                </div>
+                <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {% for estudiante in grupos.hombres_solteros %}
+                        {% include "estudiantes/_estudiante_card.html" with estudiante=estudiante acento="border-brand-soltero/30" fondo="bg-brand-solteroBg" %}
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        {% if grupos.mujeres_solteras %}
+            <section>
+                <div class="mb-3 flex items-baseline gap-2">
+                    <h2 class="text-lg font-medium text-brand-dark">Mujeres solteras</h2>
+                    <span class="rounded-full bg-brand-solteraBg px-2.5 py-0.5 text-xs font-medium text-brand-soltera">
+                        {{ grupos.mujeres_solteras|length }}
+                    </span>
+                </div>
+                <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {% for estudiante in grupos.mujeres_solteras %}
+                        {% include "estudiantes/_estudiante_card.html" with estudiante=estudiante acento="border-brand-soltera/30" fondo="bg-brand-solteraBg" %}
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+    </div>
+{% endif %}

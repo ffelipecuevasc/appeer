@@ -1,0 +1,63 @@
+{% comment %}
+  Tarjeta individual de estudiante (Fase 13, Subfase 13.2).
+
+  Componente reutilizable: se usa en los tres grupos del listado y
+  también anidada dentro de la tarjeta de matrimonio (13.3). Por eso
+  recibe el tono por parámetro en vez de decidirlo adentro.
+
+  Parámetros esperados (vía {% include ... with %}):
+    estudiante  — EstudianteDTO
+    acento      — clase Tailwind del color de acento del grupo
+    fondo       — clase Tailwind del color de fondo del grupo
+    compacta    — si es True, versión reducida (dentro de matrimonio)
+    color_icono — clase de color del icono de género; si se omite, cada
+                  género usa el color de su propio grupo
+
+  Toda la tarjeta es un enlace al detalle: la única acción del listado
+  es "ver" (Subfase 13.6 movió editar y eliminar al detalle), así que
+  no hace falta un botón aparte — el objetivo de clic es la tarjeta
+  entera, que además es mucho más cómodo en móvil.
+{% endcomment %}
+<a href="{% url 'estudiantes:detalle' id_estudiante=estudiante.id_estudiante %}"
+   class="group block rounded-2xl border bg-white p-4 transition-all hover:shadow-card hover:-translate-y-0.5 {{ acento|default:'border-brand-border' }}">
+
+    <div class="flex items-start gap-3">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full {{ fondo|default:'bg-brand-bg' }}">
+            {% include "estudiantes/_icono_genero.html" with genero=estudiante.genero color_icono=color_icono %}
+        </span>
+
+        <div class="min-w-0 flex-1">
+            {# El nombre va primero y destacado, como pidió el cliente. #}
+            <p class="truncate text-base font-semibold leading-tight text-brand-dark">
+                {{ estudiante.nombre }}
+            </p>
+            <p class="truncate text-sm text-brand-muted">{{ estudiante.apellido }}</p>
+        </div>
+    </div>
+
+    {% if not compacta %}
+        <dl class="mt-3 space-y-1 text-xs text-brand-muted">
+            <div class="flex justify-between gap-2">
+                <dt>Género</dt>
+                <dd class="text-brand-text">{{ estudiante.genero|title }}</dd>
+            </div>
+            <div class="flex justify-between gap-2">
+                <dt>Nacimiento</dt>
+                <dd class="text-brand-text">
+                    {% if estudiante.fecha_nacimiento %}{{ estudiante.fecha_nacimiento|date:"d/m/Y" }}{% else %}—{% endif %}
+                </dd>
+            </div>
+        </dl>
+    {% endif %}
+
+    {# Pastillas de responsabilidad (Fase 12). Solo aparecen si tiene. #}
+    {% if estudiante.responsabilidades %}
+        <div class="mt-3 flex flex-wrap gap-1.5">
+            {% for responsabilidad in estudiante.responsabilidades %}
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium {{ fondo|default:'bg-brand-bg' }} text-brand-dark">
+                    {{ responsabilidad.nombre }}
+                </span>
+            {% endfor %}
+        </div>
+    {% endif %}
+</a>

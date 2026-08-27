@@ -13,6 +13,7 @@ from django.urls import reverse
 
 from apps.estudiantes import selectors, services
 from apps.estudiantes.models import Estudiante, Matrimonio, Responsabilidad
+from apps.academico import services as academico_services
 from apps.estudiantes.serializers import EstudianteDTO
 
 U, C = "test_user", "Clave-De-Prueba-8020"
@@ -229,3 +230,145 @@ class NoRegresionMatrimonioTests(TestCase):
                 nombre="Pedro", apellido="Soto", genero=MASC, matrimonio=matrimonio
             )
         self.assertEqual(matrimonio.estudiantes.count(), 2)
+
+
+class AgrupacionTests(TestCase):
+    """Fase 13, Subfase 13.1: los tres grupos del listado."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.clase = academico_services.crear_clase(
+            nombre="Turma 206", fecha_inicio="2026-03-02", fecha_fin="2026-06-27"
+        )
+        matrimonio = services.crear_matrimonio(fecha_matrimonio="2019-01-26")
+        cls.esposo = services.crear_estudiante(
+            nombre="Samuel", apellido="Neri", genero=MASC, matrimonio=matrimonio
+        )
+        cls.esposa = services.crear_estudiante(
+            nombre="Jocilene", apellido="Neri", genero=FEM, matrimonio=matrimonio
+        )
+        cls.soltero = services.crear_estudiante(nombre="Bruno", apellido="Santos", genero=MASC)
+        cls.soltera = services.crear_estudiante(nombre="Ana", apellido="Cristina", genero=FEM)
+        for e in (cls.esposo, cls.soltero, cls.soltera):
+            academico_services.crear_inscripcion(estudiante=e, clase=cls.clase)
+
+    def _agrupar(self, query=None):
+        return selectors.agrupar_estudiantes(
+            selectors.listar_estudiantes_de_clase(self.clase.pk, query=query)
+        )
+
+    def test_reparte_en_los_tres_grupos(self):
+        g = self._agrupar()
+        self.assertEqual(len(g["matrimonios"]), 1)
+        self.assertEqual(len(g["matrimonios"][0]), 2)
+        self.assertEqual(len(g["hombres_solteros"]), 1)
+        self.assertEqual(len(g["mujeres_solteras"]), 1)
+
+    def test_los_casados_no_caen_en_solteros(self):
+        g = self._agrupar()
+        solteros = g["hombres_solteros"] + g["mujeres_solteras"]
+        self.assertNotIn(self.esposo, solteros)
+        self.assertNotIn(self.esposa, solteros)
+
+    def test_el_varon_va_primero_en_la_tarjeta_de_matrimonio(self):
+        """Orden estable, no dependiente del orden alfabético."""
+        g = self._agrupar()
+        self.assertEqual(g["matrimonios"][0][0], self.esposo)
+
+    def test_solo_incluye_a_los_inscritos_en_esa_clase(self):
+        services.crear_estudiante(nombre="Externo", apellido="Zeta", genero=MASC)
+        g = self._agrupar()
+        nombres = [e.nombre for e in g["hombres_solteros"]]
+        self.assertNotIn("Externo", nombres)
+
+    def test_busqueda_puede_dejar_un_matrimonio_incompleto(self):
+        """
+        Caso de borde real: la Adenda 10 garantiza parejas completas en
+        la clase, pero una búsqueda puede coincidir con uno solo. No
+        debe romperse ni reclasificarlo como soltero.
+        """
+        g = self._agrupar(query="Samuel")
+        self.assertEqual(len(g["matrimonios"]), 1)
+        self.assertEqual(len(g["matrimonios"][0]), 1)
+        self.assertEqual(g["hombres_solteros"], [])
+
+    def test_clase_vacia_devuelve_los_tres_grupos_vacios(self):
+        otra = academico_services.crear_clase(
+            nombre="Turma 999", fecha_inicio="2027-01-01", fecha_fin="2027-06-01"
+        )
+        g = selectors.agrupar_estudiantes(selectors.listar_estudiantes_de_clase(otra.pk))
+        self.assertEqual(g["matrimonios"], [])
+        self.assertEqual(g["hombres_solteros"], [])
+        self.assertEqual(g["mujeres_solteras"], [])
+
+
+class ListadoPorClaseTests(TestCase):
+    """Subfases 13.4 a 13.6: la pantalla completa."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = get_user_model().objects.create_superuser(U, "", C)
+        cls.clase = academico_services.crear_clase(
+            nombre="Turma 206", fecha_inicio="2026-03-02", fecha_fin="2026-06-27"
+        )
+        cls.soltero = services.crear_estudiante(nombre="Bruno", apellido="Santos", genero=MASC)
+        academico_services.crear_inscripcion(estudiante=cls.soltero, clase=cls.clase)
+
+    def setUp(self):
+        self.client.login(username=U, password=C)
+
+    def test_sin_clase_pide_elegir_una(self):
+        r = self.client.get(reverse("estudiantes:listado"))
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "Selecciona una clase")
+        self.assertIsNone(r.context["grupos"])
+
+    def test_sin_clase_no_muestra_estudiantes(self):
+        r = self.client.get(reverse("estudiantes:listado"))
+        self.assertNotContains(r, "Bruno")
+
+    def test_con_clase_muestra_los_grupos(self):
+        r = self.client.get(reverse("estudiantes:listado"), {"clase": self.clase.pk})
+        self.assertContains(r, "Bruno")
+        self.assertContains(r, "Hombres solteros")
+        self.assertEqual(r.context["total"], 1)
+
+    def test_clase_inexistente_da_404(self):
+        r = self.client.get(reverse("estudiantes:listado"), {"clase": 999999})
+        self.assertEqual(r.status_code, 404)
+
+    def test_el_listado_ya_no_ofrece_editar_ni_eliminar(self):
+        """Subfase 13.6: esas acciones viven solo en el detalle."""
+        r = self.client.get(reverse("estudiantes:listado"), {"clase": self.clase.pk})
+        self.assertNotContains(r, f"/estudiantes/{self.soltero.pk}/editar/")
+        self.assertNotContains(r, f"/estudiantes/{self.soltero.pk}/eliminar/")
+
+    def test_el_detalle_si_ofrece_editar_y_eliminar(self):
+        r = self.client.get(reverse("estudiantes:detalle", kwargs={"id_estudiante": self.soltero.pk}))
+        self.assertContains(r, f"/estudiantes/{self.soltero.pk}/editar/")
+        self.assertContains(r, f"/estudiantes/{self.soltero.pk}/eliminar/")
+
+    def test_la_tarjeta_enlaza_al_detalle(self):
+        r = self.client.get(reverse("estudiantes:listado"), {"clase": self.clase.pk})
+        self.assertContains(r, f"/estudiantes/{self.soltero.pk}/")
+
+    def test_busqueda_ajax_devuelve_el_fragmento_de_grupos(self):
+        r = self.client.get(
+            reverse("estudiantes:listado"),
+            {"clase": self.clase.pk, "q": "Bruno"},
+            headers={"X-Requested-With": "XMLHttpRequest", "Origin": "http://testserver"},
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertTemplateUsed(r, "estudiantes/_estudiante_grupos.html")
+        self.assertContains(r, "Bruno")
+
+    def test_busqueda_sin_coincidencias_lo_dice(self):
+        r = self.client.get(
+            reverse("estudiantes:listado"), {"clase": self.clase.pk, "q": "zzzz"}
+        )
+        self.assertContains(r, "No se encontraron estudiantes")
+
+    def test_sigue_protegido_sin_sesion(self):
+        anon = self.client_class()
+        r = anon.get(reverse("estudiantes:listado"), {"clase": self.clase.pk})
+        self.assertEqual(r.status_code, 302)

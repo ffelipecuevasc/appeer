@@ -109,3 +109,84 @@ def listar_estudiantes_por_responsabilidad(id_responsabilidad):
         .prefetch_related("responsabilidades")
         .order_by("apellido", "nombre")
     )
+
+
+# --- Agrupación para el listado por clase (Fase 13, Subfase 13.1) ----
+
+def listar_estudiantes_de_clase(id_clase, *, query=None):
+    """
+    Estudiantes inscritos en UNA clase. Base del listado de la Fase 13,
+    que exige elegir clase antes de mostrar nada.
+
+    Vive acá y no en apps.academico porque devuelve Estudiantes: el
+    criterio del proyecto es que el Selector pertenece a la app del
+    modelo que retorna, no a la del filtro que aplica.
+    """
+    qs = (
+        Estudiante.objects
+        .filter(inscripciones__clase_id=id_clase)
+        .select_related("matrimonio")
+        .prefetch_related("responsabilidades")
+        .order_by("apellido", "nombre")
+    )
+    if query:
+        qs = qs.filter(Q(nombre__icontains=query) | Q(apellido__icontains=query))
+    return qs
+
+
+def agrupar_estudiantes(estudiantes):
+    """
+    Reparte una colección de Estudiante en los tres grupos que pide la
+    Fase 13: matrimonios, hombres solteros y mujeres solteras.
+
+    La agrupación es responsabilidad del Selector, NUNCA de la
+    plantilla: el patrón del proyecto es que la vista recibe datos ya
+    listos para pintar (Plan Maestro, sección 9).
+
+    Devuelve un dict con:
+      - "matrimonios": lista de listas de Estudiante (los cónyuges
+        juntos, ordenados con el varón primero para que la tarjeta de
+        matrimonio se lea siempre igual).
+      - "hombres_solteros" / "mujeres_solteras": listas de Estudiante.
+
+    Sobre matrimonios incompletos: la Adenda 10 garantiza que un casado
+    no puede estar inscrito sin su cónyuge, así que dentro de una clase
+    todo matrimonio llega completo. Aun así, esta función NO asume dos
+    integrantes — agrupa por matrimonio_id y devuelve lo que haya. Dos
+    razones: se la puede llamar sobre una colección ya filtrada por
+    búsqueda (donde el cónyuge puede no coincidir con el término
+    buscado), y un invariante que se cumple hoy no debería producir un
+    IndexError el día que alguien cargue datos por otra vía.
+    """
+    matrimonios = {}
+    hombres_solteros = []
+    mujeres_solteras = []
+
+    for estudiante in estudiantes:
+        if estudiante.matrimonio_id is not None:
+            matrimonios.setdefault(estudiante.matrimonio_id, []).append(estudiante)
+        elif estudiante.genero == Estudiante.Genero.MASCULINO:
+            hombres_solteros.append(estudiante)
+        else:
+            mujeres_solteras.append(estudiante)
+
+    def _ordenar_conyuges(conyuges):
+        # Varón primero: la tarjeta de matrimonio se lee siempre en el
+        # mismo orden, en vez de depender del orden alfabético del
+        # queryset (que pondría a la esposa primera unas veces sí y
+        # otras no).
+        return sorted(
+            conyuges, key=lambda e: e.genero != Estudiante.Genero.MASCULINO
+        )
+
+    return {
+        "matrimonios": [
+            _ordenar_conyuges(conyuges)
+            for _, conyuges in sorted(
+                matrimonios.items(),
+                key=lambda par: (par[1][0].apellido, par[1][0].nombre),
+            )
+        ],
+        "hombres_solteros": hombres_solteros,
+        "mujeres_solteras": mujeres_solteras,
+    }

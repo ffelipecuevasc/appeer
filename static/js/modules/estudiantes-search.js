@@ -3,8 +3,16 @@
  * ---------------------------------------------------------------
  * Búsqueda en vivo del listado de estudiantes. Consume el endpoint
  * parcial de la Subfase 6.2 (?q=... + header X-Requested-With, que
- * AppEER.http ya inyecta) y reemplaza #estudiante-rows con el
+ * AppEER.http ya inyecta) y reemplaza #estudiante-grupos con el
  * fragmento recibido, sin recargar la página.
+ *
+ * Fase 13: el listado pasó de una tabla plana a tres grupos de
+ * tarjetas, y ahora exige una clase elegida. Dos ajustes:
+ *   - El destino del reemplazo es #estudiante-grupos (antes
+ *     #estudiante-rows, el <tbody> que ya no existe).
+ *   - La petición arrastra SIEMPRE el ?clase= actual: sin él, el
+ *     servidor devolvería el estado "elige una clase" y la búsqueda
+ *     vaciaría la pantalla.
  *
  * Mejora progresiva: si este script no carga o falla, el <form
  * id="estudiante-search-form"> de estudiante_list.html sigue
@@ -26,8 +34,8 @@
 
     const input = document.getElementById("estudiante-search");
     const form = document.getElementById("estudiante-search-form");
-    const rows = document.getElementById("estudiante-rows");
-    const pagination = document.getElementById("estudiante-pagination");
+    const rows = document.getElementById("estudiante-grupos");
+    const claseSelect = document.getElementById("clase");
 
     if (!input || !form || !rows) {
         return; // esta página no tiene buscador de estudiantes; nada que hacer
@@ -49,6 +57,12 @@
         } else {
             url.searchParams.delete("q");
         }
+        // La clase es obligatoria para que el servidor devuelva
+        // resultados (Fase 13): sin ella responde el estado "elige una
+        // clase" y la búsqueda dejaría la pantalla en blanco.
+        if (claseSelect && claseSelect.value) {
+            url.searchParams.set("clase", claseSelect.value);
+        }
         return url.pathname + url.search;
     }
 
@@ -69,15 +83,6 @@
         const thisController = activeController;
 
         setLoading(true);
-
-        // La paginación server-rendered de la carga inicial ya no
-        // describe correctamente el resultado de una búsqueda en vivo
-        // (el fragmento parcial no trae su propia paginación). Se
-        // oculta en cuanto hay una búsqueda en curso, en vez de mostrar
-        // números que ya no corresponden a lo que se ve en pantalla.
-        if (pagination) {
-            pagination.classList.add("hidden");
-        }
 
         window.AppEER.http
             .get(buildUrl(query), {signal: thisController.signal})
@@ -107,6 +112,11 @@
                 }
             });
     }
+
+    // Cambiar de clase NO pasa por fetch: es un cambio de contexto
+    // completo (otro grupo de alumnos, otro título, otro contador), no
+    // un filtrado incremental. El <select> hace submit y recarga, que
+    // además deja la URL compartible.
 
     input.addEventListener("input", function () {
         window.clearTimeout(debounceTimer);
