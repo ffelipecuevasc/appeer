@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Editar{% else %}Nuevo{% endif %} recordatorio · AppEER{% endblock %}
+{% block content %}
+    {# Camino SIN JavaScript (Subfase 14.6, requisito no negociable):
+       página propia, formulario propio, redirect al terminar. Con JS
+       activo el usuario nunca llega acá — edita en la propia tarjeta. #}
+    <a href="{% url 'recordatorios:linea_tiempo' %}?clase={{ clase.id_clase }}"
+       class="mb-6 inline-flex items-center text-sm text-brand-accent hover:underline">&larr; Volver al cronograma</a>
+
+    <h1 class="mb-1 text-3xl font-medium text-brand-dark">
+        {% if object %}Editar recordatorio{% else %}Nuevo recordatorio{% endif %}
+    </h1>
+    <p class="mb-6 text-sm text-brand-muted">Clase: <strong>{{ clase.nombre }}</strong></p>
+
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        <section class="rounded-3xl bg-brand-card p-6 shadow-card sm:p-8">
+            {% include "recordatorios/_form_inner.html" %}
+        </section>
+        <div class="flex justify-end gap-3">
+            <a href="{% url 'recordatorios:linea_tiempo' %}?clase={{ clase.id_clase }}"
+               class="rounded-full border border-brand-border px-5 py-2.5 text-sm font-medium text-brand-dark transition-colors hover:bg-brand-bg/60">Cancelar</a>
+            <button type="submit" class="rounded-full bg-brand-accent px-6 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90">Guardar</button>
+        </div>
+    </form>
+{% endblock %}

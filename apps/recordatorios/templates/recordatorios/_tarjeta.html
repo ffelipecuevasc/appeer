@@ -1,0 +1,79 @@
+{% comment %}
+  Tarjeta de una tarea (Subfases 14.4, 14.7 y 14.8).
+
+  Es la unidad que el módulo JS reemplaza tras cada operación: al
+  completar, al editar y al crear, el servidor devuelve exactamente
+  este fragmento ya renderizado. Por eso vive en su propio archivo.
+
+  El atributo data-id es el ancla que usa el JS para encontrarla;
+  data-vencida es informativo para pruebas y depuración — el estilo de
+  vencida ya viene aplicado desde el servidor, no lo decide el
+  navegador.
+{% endcomment %}
+<article class="recordatorio-tarjeta group relative rounded-2xl border bg-white p-4 transition-all
+                {% if tarea.completado %}border-brand-border opacity-60
+                {% elif tarea.vencida %}border-red-300 bg-red-50/40
+                {% else %}border-brand-border{% endif %}"
+         data-id="{{ tarea.id_recordatorio }}"
+         data-vencida="{{ tarea.vencida|yesno:'1,0' }}">
+
+    <div class="flex items-start gap-3">
+        {# Completar: formulario POST propio, funciona sin JavaScript.
+           El módulo JS lo intercepta para no recargar la página. #}
+        <form method="post"
+              action="{% url 'recordatorios:completar' id_clase=tarea.clase_id id_recordatorio=tarea.id_recordatorio %}"
+              class="recordatorio-toggle shrink-0 pt-0.5">
+            {% csrf_token %}
+            <button type="submit"
+                    class="flex h-5 w-5 items-center justify-center rounded-md border-2 transition-colors
+                           {% if tarea.completado %}border-brand-accent bg-brand-accent text-white{% else %}border-brand-border hover:border-brand-accent{% endif %}"
+                    aria-label="{% if tarea.completado %}Marcar como pendiente{% else %}Marcar como completada{% endif %}">
+                {% if tarea.completado %}
+                    <svg class="h-3 w-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path fill="currentColor" d="M9.55 17.308L4.288 12.05l.717-.702l4.545 4.544l9.439-9.439l.702.717z"/>
+                    </svg>
+                {% endif %}
+            </button>
+        </form>
+
+        <div class="min-w-0 flex-1">
+            <p class="text-sm leading-snug text-brand-dark {% if tarea.completado %}line-through{% endif %}">
+                {{ tarea.descripcion }}
+            </p>
+
+            <div class="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-brand-muted">
+                {% include "recordatorios/_pastilla_tipo.html" with tipo=tarea.tipo %}
+                <span>{{ tarea.fecha|date:"D d/m" }}</span>
+                {% if tarea.hora %}<span>· {{ tarea.hora|time:"H:i" }}</span>{% endif %}
+                <span>· {{ tarea.responsables_texto }}</span>
+                {% if tarea.vencida %}
+                    <span class="rounded-full bg-red-100 px-2 py-0.5 font-medium text-red-700">Vencida</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Acciones: visibles siempre en táctil, al pasar el cursor en
+           escritorio. Son enlaces reales, así que sin JS llevan a sus
+           páginas propias. #}
+        <div class="flex shrink-0 items-center gap-1 opacity-100 transition-opacity lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100">
+            <a href="{% url 'recordatorios:editar' id_clase=tarea.clase_id id_recordatorio=tarea.id_recordatorio %}"
+               class="recordatorio-editar rounded-lg p-1.5 text-brand-muted transition-colors hover:bg-brand-bg hover:text-brand-dark"
+               aria-label="Editar">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill="currentColor" d="M5 19h1.096l9.937-9.937l-1.096-1.096L5 17.904zm-1 1v-2.52L16.666 4.797q.156-.142.34-.22t.387-.077q.203 0 .389.077q.185.077.33.22l1.06 1.078q.144.146.216.331T19.46 6.6q0 .202-.077.388t-.22.341L6.52 20z"/>
+                </svg>
+            </a>
+            <a href="{% url 'recordatorios:eliminar' id_clase=tarea.clase_id id_recordatorio=tarea.id_recordatorio %}"
+               class="recordatorio-eliminar rounded-lg p-1.5 text-brand-muted transition-colors hover:bg-red-50 hover:text-red-600"
+               aria-label="Eliminar">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill="currentColor" d="M7.616 20q-.672 0-1.144-.472T6 18.385V6H5V5h4v-.77h6V5h4v1h-1v12.385q0 .69-.462 1.153T16.384 20zM17 6H7v12.385q0 .269.173.442t.443.173h8.769q.23 0 .423-.192t.192-.424zM9.808 17h1V8h-1zm3.384 0h1V8h-1zM7 6v13z"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+
+    {# Zona donde el JS inyecta el formulario de edición en línea o la
+       confirmación de borrado. Vacía en el render normal. #}
+    <div class="recordatorio-zona-edicion hidden"></div>
+</article>

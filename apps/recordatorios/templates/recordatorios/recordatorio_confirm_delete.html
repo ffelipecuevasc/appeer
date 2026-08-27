@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Eliminar recordatorio · AppEER{% endblock %}
+{% block content %}
+    {# Camino sin JavaScript. Con JS, el borrado se confirma dentro de
+       la propia tarjeta y nunca se llega a esta página (Subfase 14.7). #}
+    <div class="mx-auto max-w-lg rounded-3xl bg-brand-card p-8 shadow-card">
+        <h1 class="mb-2 text-xl font-medium text-brand-dark">¿Eliminar este recordatorio?</h1>
+        <p class="mb-6 text-sm text-brand-muted">
+            Vas a eliminar <strong>{{ object.descripcion }}</strong> del cronograma de
+            <strong>{{ clase.nombre }}</strong>. Esta acción no se puede deshacer.
+        </p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="flex justify-end gap-3">
+                <a href="{% url 'recordatorios:linea_tiempo' %}?clase={{ clase.id_clase }}"
+                   class="rounded-full border border-brand-border px-5 py-2.5 text-sm font-medium text-brand-dark transition-colors hover:bg-brand-bg/60">Cancelar</a>
+                <button type="submit" class="rounded-full bg-red-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-700">Eliminar definitivamente</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}

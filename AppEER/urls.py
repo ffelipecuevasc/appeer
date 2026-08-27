@@ -39,6 +39,7 @@ urlpatterns = [
     path("escuela/", include("apps.academico.urls")),
     path("planificacion/", include("apps.planificacion.urls")),
     path("asignaciones/", include("apps.asignaciones.urls")),
+    path("recordatorios/", include("apps.recordatorios.urls")),
 ]
 
 handler403 = "core.views.error_403"

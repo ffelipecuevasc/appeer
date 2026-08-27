@@ -91,6 +91,8 @@
                 </svg>
             </summary>
             <div class="absolute left-0 top-full mt-2 w-60 bg-white rounded-2xl shadow-card border border-brand-border p-2 z-30">
+                <a href="{% url 'recordatorios:linea_tiempo' %}"
+                   class="block px-4 py-2.5 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Recordatorios</a>
                 <!-- Fase 11 (Adenda 9): "Ediciones" desapareció junto con
                      EdicionEscuela. Un solo destino real ahora, igual que
                      Planificación (ver su dropdown, dos ítems abajo). -->
@@ -275,6 +277,8 @@
             </svg>
             <span>Escuela</span>
         </div>
+        <a href="{% url 'recordatorios:linea_tiempo' %}"
+           class="block px-4 py-2 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Recordatorios</a>
         <a href="{% url 'academico:clases_listado' %}"
            class="block px-4 py-2 rounded-xl text-sm text-brand-text hover:bg-brand-bg/60 transition-colors">Listado de
             clases</a>
