@@ -341,3 +341,74 @@ class MejoraProgresivaTests(Base):
         self.assertEqual(r.status_code, 302)
         rec.refresh_from_db()
         self.assertTrue(rec.completado)
+
+
+class CatalogoTiposCRUDTests(Base):
+    """
+    Adenda 11: gestión del catálogo desde la propia aplicación, sin
+    depender del panel de administración de Django.
+    """
+
+    def setUp(self):
+        self.client.login(username=U, password=C)
+
+    def test_listado_muestra_los_tipos_y_su_uso(self):
+        self._crear()
+        r = self.client.get(reverse("recordatorios:tipos_listado"))
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "Reunión")
+        self.assertContains(r, "1 recordatorio")
+
+    def test_crear_tipo_desde_la_app(self):
+        r = self.client.post(reverse("recordatorios:tipos_crear"),
+                             {"nombre": "Visita de zona", "color": "VERDE"})
+        self.assertEqual(r.status_code, 302)
+        self.assertTrue(TipoRecordatorio.objects.filter(nombre="Visita de zona").exists())
+
+    def test_editar_tipo_desde_la_app(self):
+        r = self.client.post(
+            reverse("recordatorios:tipos_editar", kwargs={"id_tipo": self.tipo.pk}),
+            {"nombre": "Reunión general", "color": "AZUL"},
+        )
+        self.assertEqual(r.status_code, 302)
+        self.tipo.refresh_from_db()
+        self.assertEqual(self.tipo.nombre, "Reunión general")
+
+    def test_nombre_duplicado_se_rechaza(self):
+        r = self.client.post(reverse("recordatorios:tipos_crear"),
+                             {"nombre": "Reunión", "color": "AZUL"})
+        self.assertEqual(r.status_code, 200)
+
+    def test_alternar_estado(self):
+        url = reverse("recordatorios:tipos_alternar_estado", kwargs={"id_tipo": self.tipo.pk})
+        self.client.post(url)
+        self.tipo.refresh_from_db()
+        self.assertFalse(self.tipo.activo)
+        self.client.post(url)
+        self.tipo.refresh_from_db()
+        self.assertTrue(self.tipo.activo)
+
+    def test_alternar_no_acepta_get(self):
+        url = reverse("recordatorios:tipos_alternar_estado", kwargs={"id_tipo": self.tipo.pk})
+        self.assertEqual(self.client.get(url).status_code, 405)
+
+    def test_no_existe_ruta_de_borrado(self):
+        """Se desactiva, no se borra (ver services.alternar_activo_tipo)."""
+        with self.assertRaises(Exception):
+            reverse("recordatorios:tipos_eliminar", kwargs={"id_tipo": self.tipo.pk})
+
+    def test_un_tipo_inactivo_no_se_ofrece_al_crear(self):
+        services.alternar_activo_tipo(tipo=self.tipo)
+        disponibles = selectors.listar_tipos_disponibles()
+        self.assertNotIn(self.tipo, disponibles)
+
+    def test_editar_un_recordatorio_conserva_su_tipo_desactivado(self):
+        """Sin esto, guardar borraría el tipo en silencio."""
+        rec = self._crear()
+        services.alternar_activo_tipo(tipo=self.tipo)
+        disponibles = selectors.listar_tipos_disponibles(incluir_tipo_id=rec.tipo_id)
+        self.assertIn(self.tipo, disponibles)
+
+    def test_catalogo_protegido_sin_sesion(self):
+        anon = self.client_class()
+        self.assertEqual(anon.get(reverse("recordatorios:tipos_listado")).status_code, 302)

@@ -4,7 +4,7 @@ Formularios de apps.estudiantes para el CRUD público de Estudiante.
 from django import forms
 
 from apps.estudiantes import selectors
-from apps.estudiantes.models import Estudiante
+from apps.estudiantes.models import Estudiante, Responsabilidad
 
 INPUT_CLASSES = (
     "w-full px-4 py-2.5 rounded-xl border border-brand-border bg-white "
@@ -91,7 +91,16 @@ class EstudianteForm(forms.ModelForm):
         # responsabilidad. El queryset sale del Selector, no de
         # Responsabilidad.objects, para respetar el patrón de capas.
         self.fields["responsabilidades"].required = False
-        self.fields["responsabilidades"].queryset = selectors.listar_responsabilidades()
+        # Solo activas, más las que este estudiante ya tenga aunque
+        # estén desactivadas (Adenda 11) — de lo contrario, editarlo
+        # se las quitaría en silencio.
+        ya_asignadas = (
+            list(self.instance.responsabilidades.values_list("pk", flat=True))
+            if self.instance and self.instance.pk else None
+        )
+        self.fields["responsabilidades"].queryset = selectors.listar_responsabilidades_disponibles(
+            incluir_ids=ya_asignadas
+        )
 
     def clean(self):
         cleaned_data = super().clean()
@@ -103,3 +112,17 @@ class EstudianteForm(forms.ModelForm):
                 "Elige un matrimonio existente o carga uno nuevo, no ambas cosas.",
             )
         return cleaned_data
+
+class ResponsabilidadForm(forms.ModelForm):
+    """
+    Formulario del catálogo de responsabilidades (Adenda 11).
+
+    `activo` no es campo del formulario: se cambia con el botón
+    Activar/Desactivar del listado — una sola forma de cambiar ese
+    estado, igual que en el catálogo de tipos de recordatorio.
+    """
+
+    class Meta:
+        model = Responsabilidad
+        fields = ["nombre"]
+        widgets = {"nombre": forms.TextInput(attrs={"class": INPUT_CLASSES})}

@@ -70,7 +70,42 @@ def agrupar_por_semana(recordatorios, *, hoy=None):
 
 
 def listar_tipos():
+    """
+    Catálogo completo, activos e inactivos. Lo consume la pantalla de
+    gestión (Adenda 11), que necesita ver ambos para poder reactivar.
+    """
     return TipoRecordatorio.objects.order_by("nombre")
+
+
+def listar_tipos_disponibles(*, incluir_tipo_id=None):
+    """
+    Solo tipos activos, para el <select> del formulario de
+    recordatorio.
+
+    `incluir_tipo_id` agrega uno inactivo a la lista: cubre el caso de
+    editar un recordatorio cuyo tipo fue desactivado después de
+    haberse creado. Sin esto, abrir ese formulario borraría el tipo en
+    silencio al guardar. Mismo patrón que listar_temas_disponibles en
+    apps.planificacion.
+    """
+    from django.db.models import Q
+
+    filtro = Q(activo=True)
+    if incluir_tipo_id is not None:
+        filtro |= Q(pk=incluir_tipo_id)
+    return TipoRecordatorio.objects.filter(filtro).order_by("nombre")
+
+
+def obtener_tipo_por_id(id_tipo):
+    return TipoRecordatorio.objects.filter(pk=id_tipo).first()
+
+
+def contar_recordatorios_por_tipo(id_tipo):
+    """
+    Cuántos recordatorios usan un tipo. La pantalla de gestión lo
+    muestra para que nadie desactive un tipo a ciegas.
+    """
+    return Recordatorio.objects.filter(tipo_id=id_tipo).count()
 
 
 def listar_pendientes_y_vencidas(id_clase, *, hoy=None, limite=None):

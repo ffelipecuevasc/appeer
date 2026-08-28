@@ -102,10 +102,26 @@ def eliminar_recordatorio(*, recordatorio):
 # --- Catálogo de tipos ----------------------------------------------
 
 @transaction.atomic
-def crear_tipo(*, nombre, color=TipoRecordatorio.Color.GRIS):
-    tipo = TipoRecordatorio(nombre=nombre, color=color)
+def crear_tipo(*, nombre, color=TipoRecordatorio.Color.GRIS, activo=True):
+    tipo = TipoRecordatorio(nombre=nombre, color=color, activo=activo)
     tipo.full_clean()
     tipo.save()
+    return tipo
+
+
+@transaction.atomic
+def alternar_activo_tipo(*, tipo):
+    """
+    Activa o desactiva un tipo (Adenda 11).
+
+    No existe `eliminar_tipo` a propósito: `Recordatorio.tipo` es
+    PROTECT, así que borrar uno en uso fallaría a nivel de base de
+    datos, y borrar uno sin uso igual perdería la trazabilidad si
+    alguien lo vuelve a necesitar. Desactivar cubre ambos casos sin
+    destruir nada.
+    """
+    tipo.activo = not tipo.activo
+    tipo.save(update_fields=["activo"])
     return tipo
 
 

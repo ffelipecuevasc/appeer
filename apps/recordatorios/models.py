@@ -15,6 +15,11 @@ class TipoRecordatorio(models.Model):
     que hoy no existen, y el cliente debe poder agregarlos sin
     esperar un despliegue.
 
+    Se gestiona desde la propia aplicación (Escuela ▸ Recordatorios ▸
+    Gestionar tipos), no desde el panel de administración de Django:
+    ese panel es una herramienta técnica, no parte del producto
+    (Adenda 11).
+
     `color` guarda el nombre del tono, no un hexadecimal: así la
     plantilla decide cómo pintarlo dentro del sistema de diseño
     (Tailwind + paleta brand.*) en vez de que la base de datos imponga
@@ -32,6 +37,13 @@ class TipoRecordatorio(models.Model):
     id_tipo = models.AutoField(primary_key=True, db_column="id_tipo")
     nombre = models.CharField(max_length=50, unique=True)
     color = models.CharField(max_length=10, choices=Color.choices, default=Color.GRIS)
+    # Adenda 11: un tipo que deja de usarse se DESACTIVA, no se borra.
+    # Recordatorio.tipo está en PROTECT, así que la base de datos ya
+    # impide eliminar un tipo en uso; ofrecer un botón "Eliminar" que
+    # falla sería peor que no ofrecerlo. Desactivar además preserva el
+    # historial: los recordatorios pasados conservan su etiqueta.
+    # Mismo criterio que Tema en apps.docencia (Fase 1).
+    activo = models.BooleanField(default=True)
 
     class Meta:
         db_table = "tipos_recordatorio"

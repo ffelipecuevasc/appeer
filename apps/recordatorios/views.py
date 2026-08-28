@@ -17,11 +17,11 @@ una regla cambia, cambia para los dos a la vez.
 from django.core.exceptions import ValidationError
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
-from django.views.generic import CreateView, DeleteView, TemplateView, UpdateView, View
+from django.views.generic import CreateView, DeleteView, ListView, TemplateView, UpdateView, View
 
 from apps.academico import selectors as academico_selectors
 from apps.recordatorios import selectors, services
-from apps.recordatorios.forms import RecordatorioForm
+from apps.recordatorios.forms import RecordatorioForm, TipoRecordatorioForm
 from apps.recordatorios.serializers import RecordatorioDTO
 from core.mixins import AccessControlMixin
 
@@ -261,3 +261,71 @@ class RecordatorioFormParcialView(_ClaseDesdeUrlMixin, View):
             request, "recordatorios/_form_inner.html",
             {"form": form, "clase": self.clase, "object": instancia},
         )
+
+
+# --- Catálogo de tipos (Adenda 11) ----------------------------------
+# Reemplaza la gestión vía panel de administración de Django. Sigue el
+# mismo patrón que apps.docencia usa para Tema: listado, alta, edición
+# y alternar estado. Sin borrado, a propósito (ver services).
+
+class TipoRecordatorioListView(AccessControlMixin, ListView):
+    template_name = "recordatorios/tipo_list.html"
+    context_object_name = "tipos"
+
+    def get_queryset(self):
+        return selectors.listar_tipos()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # El conteo de uso se resuelve acá, no en la plantilla: así la
+        # vista entrega datos listos para pintar y el template no
+        # dispara una consulta por fila.
+        context["tipos"] = [
+            {"tipo": tipo, "en_uso": selectors.contar_recordatorios_por_tipo(tipo.pk)}
+            for tipo in context["tipos"]
+        ]
+        return context
+
+
+class TipoRecordatorioCreateView(AccessControlMixin, CreateView):
+    form_class = TipoRecordatorioForm
+    template_name = "recordatorios/tipo_form.html"
+
+    def form_valid(self, form):
+        try:
+            services.crear_tipo(**form.cleaned_data)
+        except ValidationError as exc:
+            form.add_error(None, exc)
+            return self.form_invalid(form)
+        return redirect("recordatorios:tipos_listado")
+
+
+class TipoRecordatorioUpdateView(AccessControlMixin, UpdateView):
+    form_class = TipoRecordatorioForm
+    template_name = "recordatorios/tipo_form.html"
+
+    def get_object(self, queryset=None):
+        tipo = selectors.obtener_tipo_por_id(self.kwargs["id_tipo"])
+        if tipo is None:
+            raise Http404("Tipo no encontrado.")
+        return tipo
+
+    def form_valid(self, form):
+        try:
+            services.actualizar_tipo(tipo=self.object, **form.cleaned_data)
+        except ValidationError as exc:
+            form.add_error(None, exc)
+            return self.form_invalid(form)
+        return redirect("recordatorios:tipos_listado")
+
+
+class TipoRecordatorioToggleView(AccessControlMixin, View):
+    """POST-only: cambia estado, así que un GET no debe dispararlo."""
+    http_method_names = ["post"]
+
+    def post(self, request, id_tipo):
+        tipo = selectors.obtener_tipo_por_id(id_tipo)
+        if tipo is None:
+            raise Http404("Tipo no encontrado.")
+        services.alternar_activo_tipo(tipo=tipo)
+        return redirect("recordatorios:tipos_listado")

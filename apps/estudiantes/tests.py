@@ -372,3 +372,87 @@ class ListadoPorClaseTests(TestCase):
         anon = self.client_class()
         r = anon.get(reverse("estudiantes:listado"), {"clase": self.clase.pk})
         self.assertEqual(r.status_code, 302)
+
+
+class CatalogoResponsabilidadesCRUDTests(TestCase):
+    """Adenda 11: gestión del catálogo desde la propia aplicación."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = get_user_model().objects.create_superuser(U, "", C)
+        cls.anciano = Responsabilidad.objects.get(nombre="Anciano")
+
+    def setUp(self):
+        self.client.login(username=U, password=C)
+
+    def test_listado_muestra_las_responsabilidades_y_su_uso(self):
+        services.crear_estudiante(nombre="Luis", apellido="Soto", genero=MASC,
+                                  responsabilidades=[self.anciano])
+        r = self.client.get(reverse("estudiantes:responsabilidades_listado"))
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "Anciano")
+        self.assertContains(r, "1 estudiante")
+
+    def test_crear_desde_la_app(self):
+        r = self.client.post(reverse("estudiantes:responsabilidades_crear"),
+                             {"nombre": "Precursor Especial"})
+        self.assertEqual(r.status_code, 302)
+        self.assertTrue(Responsabilidad.objects.filter(nombre="Precursor Especial").exists())
+
+    def test_editar_desde_la_app(self):
+        r = self.client.post(
+            reverse("estudiantes:responsabilidades_editar",
+                    kwargs={"id_responsabilidad": self.anciano.pk}),
+            {"nombre": "Anciano de congregación"},
+        )
+        self.assertEqual(r.status_code, 302)
+        self.anciano.refresh_from_db()
+        self.assertEqual(self.anciano.nombre, "Anciano de congregación")
+
+    def test_nombre_duplicado_se_rechaza(self):
+        r = self.client.post(reverse("estudiantes:responsabilidades_crear"),
+                             {"nombre": "Anciano"})
+        self.assertEqual(r.status_code, 200)
+
+    def test_alternar_estado(self):
+        url = reverse("estudiantes:responsabilidades_alternar_estado",
+                      kwargs={"id_responsabilidad": self.anciano.pk})
+        self.client.post(url)
+        self.anciano.refresh_from_db()
+        self.assertFalse(self.anciano.activo)
+        self.client.post(url)
+        self.anciano.refresh_from_db()
+        self.assertTrue(self.anciano.activo)
+
+    def test_alternar_no_acepta_get(self):
+        url = reverse("estudiantes:responsabilidades_alternar_estado",
+                      kwargs={"id_responsabilidad": self.anciano.pk})
+        self.assertEqual(self.client.get(url).status_code, 405)
+
+    def test_no_existe_ruta_de_borrado(self):
+        with self.assertRaises(Exception):
+            reverse("estudiantes:responsabilidades_eliminar",
+                    kwargs={"id_responsabilidad": self.anciano.pk})
+
+    def test_una_inactiva_no_se_ofrece_al_registrar(self):
+        services.alternar_activo_responsabilidad(responsabilidad=self.anciano)
+        self.assertNotIn(self.anciano, selectors.listar_responsabilidades_disponibles())
+
+    def test_editar_un_estudiante_conserva_su_responsabilidad_desactivada(self):
+        """Sin esto, guardar se la quitaría en silencio."""
+        estudiante = services.crear_estudiante(nombre="Luis", apellido="Soto", genero=MASC,
+                                               responsabilidades=[self.anciano])
+        services.alternar_activo_responsabilidad(responsabilidad=self.anciano)
+        disponibles = selectors.listar_responsabilidades_disponibles(
+            incluir_ids=[self.anciano.pk]
+        )
+        self.assertIn(self.anciano, disponibles)
+        # Y el estudiante la conserva tras una edición que no la menciona.
+        services.actualizar_estudiante(estudiante=estudiante, nombre="Luis Alberto")
+        self.assertEqual(estudiante.responsabilidades.count(), 1)
+
+    def test_catalogo_protegido_sin_sesion(self):
+        anon = self.client_class()
+        self.assertEqual(
+            anon.get(reverse("estudiantes:responsabilidades_listado")).status_code, 302
+        )

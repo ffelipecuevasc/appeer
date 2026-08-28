@@ -11,7 +11,7 @@ from django import forms
 
 from apps.docencia.models import Instructor
 from apps.recordatorios import selectors
-from apps.recordatorios.models import Recordatorio
+from apps.recordatorios.models import Recordatorio, TipoRecordatorio
 
 INPUT_CLASSES = (
     "w-full px-4 py-2.5 rounded-xl border border-brand-border bg-white "
@@ -48,9 +48,34 @@ class RecordatorioForm(forms.ModelForm):
     def __init__(self, *args, clase, **kwargs):
         super().__init__(*args, **kwargs)
         self.clase = clase
-        self.fields["tipo"].queryset = selectors.listar_tipos()
+        # Solo tipos activos, más el actual si quedó desactivado
+        # después de crearse este recordatorio (Adenda 11).
+        tipo_actual_id = self.instance.tipo_id if self.instance and self.instance.pk else None
+        self.fields["tipo"].queryset = selectors.listar_tipos_disponibles(
+            incluir_tipo_id=tipo_actual_id
+        )
         self.fields["responsables"].required = False
         self.fields["responsables"].queryset = Instructor.objects.order_by("apellido", "nombre")
         self.fields["responsables"].label_from_instance = (
             lambda i: f"{i.nombre} {i.apellido}"
         )
+
+
+class TipoRecordatorioForm(forms.ModelForm):
+    """
+    Formulario del catálogo de tipos (Adenda 11).
+
+    `activo` no es un campo del formulario: se cambia con el botón
+    Activar/Desactivar del listado, no editando el registro. Así hay
+    UNA sola forma de cambiar ese estado, y no dos que puedan
+    contradecirse.
+    """
+
+    class Meta:
+        model = TipoRecordatorio
+        fields = ["nombre", "color"]
+        labels = {"color": "Color de la etiqueta"}
+        widgets = {
+            "nombre": forms.TextInput(attrs={"class": INPUT_CLASSES}),
+            "color": forms.Select(attrs={"class": INPUT_CLASSES}),
+        }

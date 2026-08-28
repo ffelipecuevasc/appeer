@@ -7,11 +7,11 @@ from django.core.exceptions import ValidationError
 from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, DeleteView, DetailView, TemplateView, UpdateView
+from django.views.generic import CreateView, DeleteView, DetailView, ListView, TemplateView, UpdateView, View
 
 from apps.academico import selectors as academico_selectors
 from apps.estudiantes import selectors, services
-from apps.estudiantes.forms import EstudianteForm
+from apps.estudiantes.forms import EstudianteForm, ResponsabilidadForm
 from apps.estudiantes.serializers import EstudianteDTO
 from core.mixins import AccessControlMixin
 
@@ -158,3 +158,73 @@ class EstudianteDeleteView(AccessControlMixin, DeleteView):
             form.add_error(None, exc)
             return self.form_invalid(form)
         return redirect(self.success_url)
+
+
+# --- Catálogo de responsabilidades (Adenda 11) -----------------------
+# Reemplaza la gestión vía panel de administración de Django. Mismo
+# patrón que el catálogo de tipos de recordatorio y que Tema en
+# apps.docencia: una sola forma de gestionar catálogos en todo el
+# proyecto, en vez de una distinta por módulo.
+
+class ResponsabilidadListView(AccessControlMixin, ListView):
+    template_name = "estudiantes/responsabilidad_list.html"
+    context_object_name = "responsabilidades"
+
+    def get_queryset(self):
+        return selectors.listar_responsabilidades()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["responsabilidades"] = [
+            {"responsabilidad": r,
+             "en_uso": selectors.contar_estudiantes_por_responsabilidad(r.pk)}
+            for r in context["responsabilidades"]
+        ]
+        return context
+
+
+class ResponsabilidadCreateView(AccessControlMixin, CreateView):
+    form_class = ResponsabilidadForm
+    template_name = "estudiantes/responsabilidad_form.html"
+
+    def form_valid(self, form):
+        try:
+            services.crear_responsabilidad(**form.cleaned_data)
+        except ValidationError as exc:
+            form.add_error(None, exc)
+            return self.form_invalid(form)
+        return redirect("estudiantes:responsabilidades_listado")
+
+
+class ResponsabilidadUpdateView(AccessControlMixin, UpdateView):
+    form_class = ResponsabilidadForm
+    template_name = "estudiantes/responsabilidad_form.html"
+
+    def get_object(self, queryset=None):
+        responsabilidad = selectors.obtener_responsabilidad_por_id(
+            self.kwargs["id_responsabilidad"]
+        )
+        if responsabilidad is None:
+            raise Http404("Responsabilidad no encontrada.")
+        return responsabilidad
+
+    def form_valid(self, form):
+        try:
+            services.actualizar_responsabilidad(
+                responsabilidad=self.object, **form.cleaned_data
+            )
+        except ValidationError as exc:
+            form.add_error(None, exc)
+            return self.form_invalid(form)
+        return redirect("estudiantes:responsabilidades_listado")
+
+
+class ResponsabilidadToggleView(AccessControlMixin, View):
+    http_method_names = ["post"]
+
+    def post(self, request, id_responsabilidad):
+        responsabilidad = selectors.obtener_responsabilidad_por_id(id_responsabilidad)
+        if responsabilidad is None:
+            raise Http404("Responsabilidad no encontrada.")
+        services.alternar_activo_responsabilidad(responsabilidad=responsabilidad)
+        return redirect("estudiantes:responsabilidades_listado")

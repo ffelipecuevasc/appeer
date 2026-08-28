@@ -79,11 +79,32 @@ def listar_matrimonios_con_cupo(*, excluir_matrimonio_id=None):
 
 def listar_responsabilidades():
     """
-    Catálogo completo de responsabilidades, para poblar el widget de
-    selección múltiple del formulario de Estudiante y el filtro del
-    listado.
+    Catálogo completo, activas e inactivas. Lo consume la pantalla de
+    gestión (Adenda 11), que necesita ver ambas para poder reactivar.
     """
     return Responsabilidad.objects.order_by("nombre")
+
+
+def listar_responsabilidades_disponibles(*, incluir_ids=None):
+    """
+    Solo responsabilidades activas, para el formulario de Estudiante.
+
+    `incluir_ids` agrega las que el estudiante YA tiene asignadas
+    aunque estén desactivadas: sin esto, editar a un anciano después
+    de desactivar "Anciano" le quitaría la responsabilidad en
+    silencio al guardar.
+    """
+    from django.db.models import Q
+
+    filtro = Q(activo=True)
+    if incluir_ids:
+        filtro |= Q(pk__in=list(incluir_ids))
+    return Responsabilidad.objects.filter(filtro).order_by("nombre")
+
+
+def contar_estudiantes_por_responsabilidad(id_responsabilidad):
+    """Para que nadie desactive una responsabilidad a ciegas."""
+    return Estudiante.objects.filter(responsabilidades__pk=id_responsabilidad).count()
 
 
 def obtener_responsabilidad_por_id(id_responsabilidad):

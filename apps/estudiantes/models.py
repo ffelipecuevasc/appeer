@@ -33,7 +33,9 @@ class Responsabilidad(models.Model):
 
     Es un CATÁLOGO EDITABLE, no un TextChoices fijo en código: el
     cliente puede necesitar agregar responsabilidades nuevas sin
-    esperar un despliegue. Los tres valores iniciales se cargan con
+    esperar un despliegue. Se gestiona desde la propia aplicación
+    (Estudiantes ▸ Gestionar responsabilidades), no desde el panel de
+    administración de Django (Adenda 11). Los tres valores iniciales se cargan con
     una migración de datos (0002_responsabilidad), no con un script
     manual, para que cualquier entorno nuevo —incluido producción—
     arranque con el catálogo poblado sin depender de que alguien
@@ -42,6 +44,11 @@ class Responsabilidad(models.Model):
 
     id_responsabilidad = models.AutoField(primary_key=True, db_column="id_responsabilidad")
     nombre = models.CharField(max_length=50, unique=True)
+    # Adenda 11: se desactiva, no se borra. Borrar una responsabilidad
+    # la quitaría en silencio de todos los estudiantes que la tienen
+    # (una relación muchos-a-muchos no protege como una FK). Desactivar
+    # la saca del formulario de alta sin tocar a quienes ya la portan.
+    activo = models.BooleanField(default=True)
 
     class Meta:
         db_table = "responsabilidades"

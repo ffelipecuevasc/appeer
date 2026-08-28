@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Responsabilidades · AppEER{% endblock %}
+{% block content %}
+    <a href="{% url 'estudiantes:listado' %}"
+       class="mb-6 inline-flex items-center text-sm text-brand-accent hover:underline">&larr; Volver a estudiantes</a>
+
+    <header class="mb-6 flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-medium text-brand-dark">Responsabilidades</h1>
+            <p class="text-sm text-brand-muted">Responsabilidades teocráticas que se pueden asignar a un estudiante.</p>
+        </div>
+        <a href="{% url 'estudiantes:responsabilidades_crear' %}"
+           class="rounded-full bg-brand-accent px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90">
+            + Nueva responsabilidad
+        </a>
+    </header>
+
+    <section class="overflow-hidden rounded-3xl bg-brand-card shadow-card">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-brand-bg/60 text-xs uppercase tracking-wide text-brand-dark">
+            <tr>
+                <th class="px-6 py-4">Nombre</th>
+                <th class="px-6 py-4">Asignada a</th>
+                <th class="px-6 py-4">Estado</th>
+                <th class="px-6 py-4"></th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-brand-border">
+            {% for fila in responsabilidades %}
+                <tr class="transition-colors hover:bg-brand-bg/40">
+                    <td class="px-6 py-4 font-medium text-brand-dark">{{ fila.responsabilidad.nombre }}</td>
+                    <td class="px-6 py-4 text-brand-muted">
+                        {{ fila.en_uso }} estudiante{{ fila.en_uso|pluralize:"s" }}
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if fila.responsabilidad.activo %}
+                            <span class="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">Activa</span>
+                        {% else %}
+                            <span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-500">Inactiva</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="inline-flex items-center gap-4">
+                            <a href="{% url 'estudiantes:responsabilidades_editar' id_responsabilidad=fila.responsabilidad.id_responsabilidad %}"
+                               class="text-sm font-medium text-brand-accent hover:underline">Editar</a>
+                            {# Sin "Eliminar": la relación con Estudiante
+                               es muchos-a-muchos y NO protege, así que un
+                               borrado vaciaría en silencio el registro de
+                               quién fue anciano o precursor. #}
+                            <form method="post"
+                                  action="{% url 'estudiantes:responsabilidades_alternar_estado' id_responsabilidad=fila.responsabilidad.id_responsabilidad %}"
+                                  class="inline">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="text-sm font-medium text-brand-muted hover:text-brand-dark hover:underline">
+                                    {% if fila.responsabilidad.activo %}Desactivar{% else %}Activar{% endif %}
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4" class="px-6 py-10 text-center text-brand-muted">No hay responsabilidades registradas todavía.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <p class="mt-4 text-xs text-brand-muted">
+        Una responsabilidad desactivada deja de ofrecerse al registrar estudiantes nuevos, pero quienes ya la tienen la conservan.
+    </p>
+{% endblock %}

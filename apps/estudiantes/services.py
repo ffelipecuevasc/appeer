@@ -170,14 +170,20 @@ def eliminar_estudiante(*, estudiante):
 # --- Responsabilidades (Fase 12, Subfase 12.3) -----------------------
 
 @transaction.atomic
-def crear_responsabilidad(*, nombre):
+def crear_responsabilidad(*, nombre, activo=True):
     """
     Alta de una responsabilidad nueva en el catálogo. Existe para que
     el cliente pueda agregar responsabilidades sin esperar un
     despliegue — el motivo por el que esto es una tabla y no un
     TextChoices en código.
+
+    Adenda 11: absorbe el parámetro `activo`. Durante esta adenda
+    llegó a existir un `crear_responsabilidad_catalogo` en paralelo,
+    con el mismo cuerpo; se eliminó al detectarlo. Dos funciones que
+    hacen lo mismo terminan divergiendo en cuanto una regla cambia y
+    alguien actualiza solo una.
     """
-    responsabilidad = Responsabilidad(nombre=nombre)
+    responsabilidad = Responsabilidad(nombre=nombre, activo=activo)
     responsabilidad.full_clean()
     responsabilidad.save()
     return responsabilidad
@@ -215,3 +221,19 @@ def quitar_responsabilidad(*, estudiante, responsabilidad):
     """
     estudiante.responsabilidades.remove(responsabilidad)
     return estudiante
+
+
+@transaction.atomic
+def alternar_activo_responsabilidad(*, responsabilidad):
+    """
+    Activa o desactiva una responsabilidad (Adenda 11).
+
+    No existe borrado: la relación con Estudiante es muchos-a-muchos y
+    NO protege, así que un delete vaciaría en silencio las filas de
+    estudiantes_responsabilidades y se perdería el registro de quién
+    fue anciano o precursor. Desactivar la retira del formulario sin
+    tocar a quienes ya la tienen.
+    """
+    responsabilidad.activo = not responsabilidad.activo
+    responsabilidad.save(update_fields=["activo"])
+    return responsabilidad
