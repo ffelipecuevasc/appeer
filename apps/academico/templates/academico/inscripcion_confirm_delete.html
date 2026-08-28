@@ -8,8 +8,10 @@
             <strong>{{ object.estudiante.nombre }} {{ object.estudiante.apellido }}</strong>
             en <strong>{{ object.clase.nombre }}</strong>. Esta acción no se puede deshacer.
         </p>
-        {# Adenda 10: dar de baja a un casado da de baja también a su
-           cónyuge. Advertirlo ANTES de confirmar, no después. #}
+        {% comment %}
+         Adenda 10: dar de baja a un casado da de baja también a su
+           cónyuge. Advertirlo ANTES de confirmar, no después.
+        {% endcomment %}
         {% if object.estudiante.matrimonio_id %}
             <div class="mb-4 px-4 py-3 rounded-xl bg-amber-50 text-amber-900 text-sm">
                 Este estudiante está casado: al darlo de baja, <strong>su cónyuge también

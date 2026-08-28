@@ -3,7 +3,8 @@
 {% block title %}{% if object %}Editar{% else %}Nuevo{% endif %} estudiante · AppEER{% endblock %}
 
 {% block content %}
-    {#
+    {% comment %}
+
       Formulario a ancho completo (Fase 13, Subfase 13.7). Antes era una
       columna de max-w-lg contra el borde izquierdo, que obligaba a
       desplazarse mucho con nueve campos. Ahora ocupa todo el ancho y
@@ -13,7 +14,8 @@
       Sigue siendo usable en móvil: las grillas son `sm:` y `lg:`, así
       que por debajo de esos anchos todo colapsa a una sola columna —
       exactamente el layout anterior.
-    #}
+
+    {% endcomment %}
     <a href="{% url 'estudiantes:listado' %}"
        class="mb-6 inline-flex items-center text-sm text-brand-accent hover:underline">&larr; Volver al listado</a>
 

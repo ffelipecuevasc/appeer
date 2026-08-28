@@ -18,8 +18,10 @@
          data-vencida="{{ tarea.vencida|yesno:'1,0' }}">
 
     <div class="flex items-start gap-3">
-        {# Completar: formulario POST propio, funciona sin JavaScript.
-           El módulo JS lo intercepta para no recargar la página. #}
+        {% comment %}
+         Completar: formulario POST propio, funciona sin JavaScript.
+           El módulo JS lo intercepta para no recargar la página.
+        {% endcomment %}
         <form method="post"
               action="{% url 'recordatorios:completar' id_clase=tarea.clase_id id_recordatorio=tarea.id_recordatorio %}"
               class="recordatorio-toggle shrink-0 pt-0.5">
@@ -52,9 +54,11 @@
             </div>
         </div>
 
-        {# Acciones: visibles siempre en táctil, al pasar el cursor en
+        {% comment %}
+         Acciones: visibles siempre en táctil, al pasar el cursor en
            escritorio. Son enlaces reales, así que sin JS llevan a sus
-           páginas propias. #}
+           páginas propias.
+        {% endcomment %}
         <div class="flex shrink-0 items-center gap-1 opacity-100 transition-opacity lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100">
             <a href="{% url 'recordatorios:editar' id_clase=tarea.clase_id id_recordatorio=tarea.id_recordatorio %}"
                class="recordatorio-editar rounded-lg p-1.5 text-brand-muted transition-colors hover:bg-brand-bg hover:text-brand-dark"
@@ -73,7 +77,9 @@
         </div>
     </div>
 
-    {# Zona donde el JS inyecta el formulario de edición en línea o la
-       confirmación de borrado. Vacía en el render normal. #}
+    {% comment %}
+     Zona donde el JS inyecta el formulario de edición en línea o la
+       confirmación de borrado. Vacía en el render normal.
+    {% endcomment %}
     <div class="recordatorio-zona-edicion hidden"></div>
 </article>

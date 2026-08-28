@@ -53,3 +53,39 @@ class RegresionControlDeAccesoTests(TestCase):
                        "academico:clases_eliminar"):
             with self.assertRaises(Exception):
                 reverse(nombre)
+
+
+class ComentariosDePlantillaTests(TestCase):
+    """
+    Adenda 11b: los comentarios de plantilla NUNCA deben llegar al HTML.
+
+    Origen: se usó `{# ... #}` en comentarios de VARIAS líneas. Django
+    solo reconoce esa sintaxis en UNA línea; al abarcar más, no la
+    interpreta como comentario y la renderiza como texto visible para
+    el usuario. Lo correcto en multilínea es {% comment %}.
+
+    Esta prueba recorre TODAS las plantillas del proyecto en vez de
+    revisar las que ya fallaron: el error es fácil de repetir y no se
+    nota hasta que alguien mira la pantalla.
+    """
+
+    def test_ninguna_plantilla_usa_comentarios_multilinea_rotos(self):
+        from pathlib import Path
+        from django.conf import settings
+
+        raiz = Path(settings.BASE_DIR)
+        rotos = []
+        for plantilla in raiz.rglob("*.html"):
+            if "node_modules" in plantilla.parts or ".venv" in plantilla.parts:
+                continue
+            for numero, linea in enumerate(
+                plantilla.read_text(encoding="utf-8").splitlines(), 1
+            ):
+                if "{#" in linea and "#}" not in linea:
+                    rotos.append(f"{plantilla.relative_to(raiz)}:{numero}")
+
+        self.assertEqual(
+            rotos, [],
+            "Comentarios {# #} abiertos en varias líneas (Django los "
+            "renderiza como texto). Usa {% comment %}:\n  " + "\n  ".join(rotos),
+        )

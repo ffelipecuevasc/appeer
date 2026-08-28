@@ -32,7 +32,7 @@
     <form method="get" class="mb-6">
         <label for="clase" class="mb-1.5 block text-xs font-medium text-brand-dark">Clase</label>
         <select name="clase" id="clase" onchange="this.form.submit()"
-                class="rounded-xl border border-brand-border bg-white px-4 py-2.5 text-sm focus:border-brand-accent focus:outline-none focus:ring-2 focus:ring-brand-accent">
+                class="rounded-xl border border-brand-border bg-white pl-4 pr-10 py-2.5 text-sm focus:border-brand-accent focus:outline-none focus:ring-2 focus:ring-brand-accent">
             <option value="">— Selecciona una clase —</option>
             {% for c in clases %}
                 <option value="{{ c.id_clase }}" {% if clase_seleccionada == c.id_clase|stringformat:"s" %}selected{% endif %}>{{ c.nombre }}</option>
@@ -57,7 +57,8 @@
             <p class="mt-1 text-sm text-brand-muted">Crea el primero con el botón de arriba.</p>
         </div>
     {% else %}
-        {#
+        {% comment %}
+
           Línea de tiempo vertical. Cada semana es un <details>: HTML5
           puro, colapsable sin una línea de JavaScript — el mismo patrón
           que ya resuelve los menús del encabezado. Si el JS falla, los
@@ -65,7 +66,8 @@
 
           `open` en las semanas con tareas vencidas: lo urgente no debe
           quedar escondido detrás de un clic.
-        #}
+
+        {% endcomment %}
         <div class="relative space-y-4 pl-6">
             {# Riel vertical de la línea de tiempo. #}
             <div class="absolute bottom-2 left-2 top-2 w-px bg-brand-border" aria-hidden="true"></div>

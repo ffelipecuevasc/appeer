@@ -33,8 +33,10 @@
                     <td class="px-6 py-4">
                         {% include "recordatorios/_pastilla_tipo.html" with tipo=fila.tipo %}
                     </td>
-                    {# El conteo evita desactivar a ciegas algo que
-                       está en uso en decenas de recordatorios. #}
+                    {% comment %}
+                     El conteo evita desactivar a ciegas algo que
+                       está en uso en decenas de recordatorios.
+                    {% endcomment %}
                     <td class="px-6 py-4 text-brand-muted">
                         {{ fila.en_uso }} recordatorio{{ fila.en_uso|pluralize:"s" }}
                     </td>
@@ -49,11 +51,13 @@
                         <div class="inline-flex items-center gap-4">
                             <a href="{% url 'recordatorios:tipos_editar' id_tipo=fila.tipo.id_tipo %}"
                                class="text-sm font-medium text-brand-accent hover:underline">Editar</a>
-                            {# Sin "Eliminar" a propósito: un tipo en uso
+                            {% comment %}
+                             Sin "Eliminar" a propósito: un tipo en uso
                                está protegido por la base de datos, y
                                borrar uno libre perdería trazabilidad.
                                Desactivar lo retira del formulario de
-                               alta sin tocar el historial. #}
+                               alta sin tocar el historial.
+                            {% endcomment %}
                             <form method="post"
                                   action="{% url 'recordatorios:tipos_alternar_estado' id_tipo=fila.tipo.id_tipo %}"
                                   class="inline">

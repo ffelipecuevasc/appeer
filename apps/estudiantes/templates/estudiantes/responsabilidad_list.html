@@ -43,10 +43,12 @@
                         <div class="inline-flex items-center gap-4">
                             <a href="{% url 'estudiantes:responsabilidades_editar' id_responsabilidad=fila.responsabilidad.id_responsabilidad %}"
                                class="text-sm font-medium text-brand-accent hover:underline">Editar</a>
-                            {# Sin "Eliminar": la relación con Estudiante
+                            {% comment %}
+                             Sin "Eliminar": la relación con Estudiante
                                es muchos-a-muchos y NO protege, así que un
                                borrado vaciaría en silencio el registro de
-                               quién fue anciano o precursor. #}
+                               quién fue anciano o precursor.
+                            {% endcomment %}
                             <form method="post"
                                   action="{% url 'estudiantes:responsabilidades_alternar_estado' id_responsabilidad=fila.responsabilidad.id_responsabilidad %}"
                                   class="inline">

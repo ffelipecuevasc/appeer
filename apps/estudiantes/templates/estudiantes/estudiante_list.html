@@ -21,18 +21,20 @@
         </a>
     </header>
 
-    {#
+    {% comment %}
+
       Filtro por clase + buscador, en un solo <form> GET (Subfase 13.5).
       Funciona sin JavaScript: enviarlo recarga la página ya filtrada
       server-side. El módulo de la Subfase 6.3 lo intercepta para hacer
       la búsqueda en vivo, pero el cambio de clase SIEMPRE recarga —
       es un cambio de contexto completo, no un filtrado incremental.
-    #}
+
+    {% endcomment %}
     <form method="get" id="estudiante-search-form" class="mb-6 flex flex-wrap items-end gap-3">
         <div>
             <label for="clase" class="mb-1.5 block text-xs font-medium text-brand-dark">Clase</label>
             <select name="clase" id="clase" onchange="this.form.submit()"
-                    class="rounded-xl border border-brand-border bg-white px-4 py-2.5 text-sm
+                    class="rounded-xl border border-brand-border bg-white pl-4 pr-10 py-2.5 text-sm
                            focus:border-brand-accent focus:outline-none focus:ring-2 focus:ring-brand-accent">
                 <option value="">— Selecciona una clase —</option>
                 {% for c in clases %}

@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Eliminar recordatorio · AppEER{% endblock %}
 {% block content %}
-    {# Camino sin JavaScript. Con JS, el borrado se confirma dentro de
-       la propia tarjeta y nunca se llega a esta página (Subfase 14.7). #}
+    {% comment %}
+     Camino sin JavaScript. Con JS, el borrado se confirma dentro de
+       la propia tarjeta y nunca se llega a esta página (Subfase 14.7).
+    {% endcomment %}
     <div class="mx-auto max-w-lg rounded-3xl bg-brand-card p-8 shadow-card">
         <h1 class="mb-2 text-xl font-medium text-brand-dark">¿Eliminar este recordatorio?</h1>
         <p class="mb-6 text-sm text-brand-muted">
